@@ -1,0 +1,212 @@
+{
+  "info": {
+    "_postman_id": "shoppingzone-delivery-agent-collection-v1",
+    "name": "ShoppingZone - 3. DELIVERY AGENT Collection",
+    "description": "Postman collection for DELIVERY AGENT role in EShoppingZone microservices. Covers Auth, Assigned Delivery Tasks, Lifecycle Transitions (PICKED_UP -> OUT_FOR_DELIVERY -> DELIVERED), COD Doorstep Cash Collection, COD Remittance to Hub, and Delivery Wallet Statement.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8099" },
+    { "key": "delivery_username", "value": "delivery1" },
+    { "key": "delivery_password", "value": "Delivery@123" },
+    { "key": "delivery_token", "value": "" },
+    { "key": "delivery_id", "value": "1" },
+    { "key": "order_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "01 - Authentication",
+      "item": [
+        {
+          "name": "Delivery Agent Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{delivery_username}}\",\n  \"password\": \"{{delivery_password}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.accessToken) {",
+                  "    pm.collectionVariables.set('delivery_token', json.data.accessToken);",
+                  "    console.log('Delivery Agent token saved');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Delivery Agent Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{delivery_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/profiles/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "profiles", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Delivery Tasks & Lifecycle",
+      "item": [
+        {
+          "name": "Get My Assigned Delivery Tasks",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{delivery_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/agent/deliveries", "host": ["{{baseUrl}}"], "path": ["api", "v1", "agent", "deliveries"] }
+          }
+        },
+        {
+          "name": "Filter Deliveries by Status (e.g. ASSIGNED)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{delivery_token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/agent/deliveries?status=ASSIGNED",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "agent", "deliveries"],
+              "query": [{ "key": "status", "value": "ASSIGNED" }]
+            }
+          }
+        },
+        {
+          "name": "Step 1: Mark Package PICKED_UP",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{delivery_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PICKED_UP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/agent/deliveries/{{delivery_id}}/status", "host": ["{{baseUrl}}"], "path": ["api", "v1", "agent", "deliveries", "{{delivery_id}}", "status"] }
+          }
+        },
+        {
+          "name": "Step 2: Mark OUT_FOR_DELIVERY",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{delivery_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"OUT_FOR_DELIVERY\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/agent/deliveries/{{delivery_id}}/status", "host": ["{{baseUrl}}"], "path": ["api", "v1", "agent", "deliveries", "{{delivery_id}}", "status"] }
+          }
+        },
+        {
+          "name": "Step 3: Mark DELIVERED (Completes Delivery & COD)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{delivery_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DELIVERED\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/agent/deliveries/{{delivery_id}}/status", "host": ["{{baseUrl}}"], "path": ["api", "v1", "agent", "deliveries", "{{delivery_id}}", "status"] }
+          }
+        },
+        {
+          "name": "Alternative: Mark Delivery FAILED",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{delivery_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"FAILED\",\n  \"failureReason\": \"Customer unavailable / Door locked\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/agent/deliveries/{{delivery_id}}/status", "host": ["{{baseUrl}}"], "path": ["api", "v1", "agent", "deliveries", "{{delivery_id}}", "status"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - COD Cash Management",
+      "item": [
+        {
+          "name": "Record COD Cash Collection at Doorstep",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{delivery_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"amount\": 1200.00,\n  \"eventId\": \"EVT-COD-COL-{{order_id}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/settlements/cod/collect", "host": ["{{baseUrl}}"], "path": ["api", "v1", "settlements", "cod", "collect"] }
+          }
+        },
+        {
+          "name": "Remit Collected COD Cash to Central Hub",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{delivery_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"amount\": 1200.00,\n  \"eventId\": \"EVT-COD-REMIT-{{order_id}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/settlements/cod/remit", "host": ["{{baseUrl}}"], "path": ["api", "v1", "settlements", "cod", "remit"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Delivery Agent Digital Wallet",
+      "item": [
+        {
+          "name": "Get Delivery Agent Wallet Balance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{delivery_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet"] }
+          }
+        },
+        {
+          "name": "Get Delivery Fee Credits & Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{delivery_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet/transactions", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet", "transactions"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Notifications",
+      "item": [
+        {
+          "name": "Get Agent Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{delivery_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/my", "host": ["{{baseUrl}}"], "path": ["api", "v1", "notifications", "my"] }
+          }
+        }
+      ]
+    }
+  ]
+}

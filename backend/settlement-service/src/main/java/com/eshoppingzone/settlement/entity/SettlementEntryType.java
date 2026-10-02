@@ -1,0 +1,15 @@
+package com.eshoppingzone.settlement.entity;
+
+public enum SettlementEntryType {
+    ORDER_SETTLEMENT,
+    COD_COLLECTION,
+    DELIVERY_PAYOUT,
+    RETURN_DELIVERY_PAYOUT,
+    REFUND_DEDUCTION,
+    WEEKLY_SETTLEMENT,
+    COD_EXPECTED,
+    COD_REMITTED,
+    COD_RECEIVED,
+    COD_RECONCILIATION,
+    MERCHANT_OUTSTANDING
+}

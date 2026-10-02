@@ -1,0 +1,350 @@
+{
+  "info": {
+    "_postman_id": "shoppingzone-admin-collection-v1",
+    "name": "ShoppingZone - 1. ADMIN Collection",
+    "description": "Comprehensive Postman collection for ADMIN role in EShoppingZone microservices. Covers Auth, User Mgmt, Product Approvals, Order Operations, Return Approvals, Delivery Dispatch, Settlement & COD Reconciliation, Platform Wallet, and Audit Logs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8099" },
+    { "key": "admin_username", "value": "admin" },
+    { "key": "admin_password", "value": "Admin@123" },
+    { "key": "admin_token", "value": "" },
+    { "key": "merchant_id", "value": "2" },
+    { "key": "order_id", "value": "1" },
+    { "key": "product_id", "value": "1" },
+    { "key": "delivery_agent_id", "value": "3" },
+    { "key": "delivery_id", "value": "1" },
+    { "key": "return_id", "value": "1" },
+    { "key": "week_start", "value": "2026-09-28" }
+  ],
+  "item": [
+    {
+      "name": "01 - Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.accessToken) {",
+                  "    pm.collectionVariables.set('admin_token', json.data.accessToken);",
+                  "    console.log('Admin token saved');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current Admin Info",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "me"] }
+          }
+        },
+        {
+          "name": "List All Registered Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "admin", "users"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Product Moderation",
+      "item": [
+        {
+          "name": "Get All Products (Admin View)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/products", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "products"] }
+          }
+        },
+        {
+          "name": "Approve Product",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/products/{{product_id}}/approve", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "products", "{{product_id}}", "approve"] }
+          }
+        },
+        {
+          "name": "Reject Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Quality standards not met\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/products/{{product_id}}/reject", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "products", "{{product_id}}", "reject"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Order Management",
+      "item": [
+        {
+          "name": "Get All System Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/orders", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "orders"] }
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/orders/{{order_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "orders", "{{order_id}}"] }
+          }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/orders/{{order_id}}/status", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "orders", "{{order_id}}", "status"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Delivery Operations",
+      "item": [
+        {
+          "name": "Assign Delivery Agent to Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"customerId\": 4,\n  \"deliveryAgentId\": {{delivery_agent_id}},\n  \"pickupAddress\": \"Merchant Warehouse A, Sector 12\",\n  \"deliveryAddress\": \"Flat 402, Sunshine Heights, Bangalore\",\n  \"customerPhone\": \"9999999994\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/deliveries/assign", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "deliveries", "assign"] }
+          }
+        },
+        {
+          "name": "Get All Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/deliveries", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "deliveries"] }
+          }
+        },
+        {
+          "name": "Get Delivery by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/deliveries/{{delivery_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "deliveries", "{{delivery_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Settlement & Payout Engine",
+      "item": [
+        {
+          "name": "Record Expected COD for Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"deliveryPartnerId\": {{delivery_agent_id}},\n  \"expectedAmount\": 1200.00,\n  \"eventId\": \"EVT-COD-EXP-{{order_id}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/settlements/cod/expected", "host": ["{{baseUrl}}"], "path": ["api", "v1", "settlements", "cod", "expected"] }
+          }
+        },
+        {
+          "name": "Record Forward Delivery Payout (₹50 Fee)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"deliveryPartnerId\": {{delivery_agent_id}},\n  \"eventId\": \"EVT-DEL-PAYOUT-{{order_id}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/settlements/delivery-payout", "host": ["{{baseUrl}}"], "path": ["api", "v1", "settlements", "delivery-payout"] }
+          }
+        },
+        {
+          "name": "Admin Confirms COD Cash Receipt",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"amount\": 1200.00,\n  \"eventId\": \"EVT-COD-CONFIRM-{{order_id}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/settlements/cod/confirm", "host": ["{{baseUrl}}"], "path": ["api", "v1", "settlements", "cod", "confirm"] }
+          }
+        },
+        {
+          "name": "Record Settlement Event (Order / Refund)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"ORDER_SETTLEMENT\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 1200.00,\n  \"eventId\": \"EVT-ORD-SETTLE-{{order_id}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/settlements/events", "host": ["{{baseUrl}}"], "path": ["api", "v1", "settlements", "events"] }
+          }
+        },
+        {
+          "name": "View Merchant Weekly Settlement Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settlements/merchant/{{merchant_id}}?weekStart={{week_start}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settlements", "merchant", "{{merchant_id}}"],
+              "query": [{ "key": "weekStart", "value": "{{week_start}}" }]
+            }
+          }
+        },
+        {
+          "name": "Run Weekly Settlement Batch (Credit Merchant Wallets)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/settlements/weekly/run", "host": ["{{baseUrl}}"], "path": ["api", "v1", "settlements", "weekly", "run"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Return Moderation",
+      "item": [
+        {
+          "name": "Get All Return Requests",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/returns", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "returns"] }
+          }
+        },
+        {
+          "name": "Approve Return",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/returns/{{return_id}}/approve", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "returns", "{{return_id}}", "approve"] }
+          }
+        },
+        {
+          "name": "Reject Return",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Item returned is damaged / used\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/returns/{{return_id}}/reject", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "returns", "{{return_id}}", "reject"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Wallet & Escrow Oversight",
+      "item": [
+        {
+          "name": "Get Platform / Admin Wallet (User ID 1)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet/user/1", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet", "user", "1"] }
+          }
+        },
+        {
+          "name": "Get Merchant Wallet (User ID 2)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet/user/2", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet", "user", "2"] }
+          }
+        },
+        {
+          "name": "Get Delivery Agent Wallet (User ID 3)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet/user/3", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet", "user", "3"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Audit Logs",
+      "item": [
+        {
+          "name": "Get System Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/audit-logs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "audit-logs"] }
+          }
+        },
+        {
+          "name": "Export Audit Logs CSV",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/admin/audit-logs/export", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "audit-logs", "export"] }
+          }
+        }
+      ]
+    }
+  ]
+}

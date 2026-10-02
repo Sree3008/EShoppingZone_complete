@@ -1,0 +1,449 @@
+{
+  "info": {
+    "_postman_id": "shoppingzone-customer-collection-v1",
+    "name": "ShoppingZone - 4. CUSTOMER Collection",
+    "description": "Postman collection for CUSTOMER role in EShoppingZone microservices. Covers Registration, Auth, Addresses, Product Browsing & Search, Recommendations, Cart Ops, Order Checkout, Payment Processing (Wallet & COD), Delivery Tracking, Returns & Refunds, Product Reviews, and Customer Wallet.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8099" },
+    { "key": "wishlistBaseUrl", "value": "http://localhost:8096" },
+    { "key": "customer_username", "value": "customer1" },
+    { "key": "customer_password", "value": "Customer@123" },
+    { "key": "customer_token", "value": "" },
+    { "key": "product_id", "value": "1" },
+    { "key": "cart_item_id", "value": "1" },
+    { "key": "order_id", "value": "1" },
+    { "key": "return_id", "value": "1" },
+    { "key": "address_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "01 - Authentication & Profile",
+      "item": [
+        {
+          "name": "Register New Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser2026\",\n  \"email\": \"newuser2026@eshoppingzone.com\",\n  \"password\": \"User@12345\",\n  \"fullName\": \"Jane Doe\",\n  \"phoneNumber\": \"9876543210\",\n  \"role\": \"CUSTOMER\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Customer Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{customer_username}}\",\n  \"password\": \"{{customer_password}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.accessToken) {",
+                  "    pm.collectionVariables.set('customer_token', json.data.accessToken);",
+                  "    console.log('Customer token saved');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Customer Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/profiles/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "profiles", "me"] }
+          }
+        },
+        {
+          "name": "Add Shipping Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"street\": \"456 Maple Avenue, Apt 2B\",\n  \"city\": \"Bangalore\",\n  \"state\": \"Karnataka\",\n  \"country\": \"India\",\n  \"zipCode\": \"560001\",\n  \"isDefault\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/profiles/address", "host": ["{{baseUrl}}"], "path": ["api", "v1", "profiles", "address"] }
+          }
+        },
+        {
+          "name": "Get My Addresses",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/profiles/address", "host": ["{{baseUrl}}"], "path": ["api", "v1", "profiles", "address"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Product Catalog & Discovery",
+      "item": [
+        {
+          "name": "Get All Approved Products",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/products", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products"] }
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/products/{{product_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products", "{{product_id}}"] }
+          }
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/search?q=Headphones",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "search"],
+              "query": [{ "key": "q", "value": "Headphones" }]
+            }
+          }
+        },
+        {
+          "name": "Get Personalized Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/recommendations", "host": ["{{baseUrl}}"], "path": ["api", "v1", "recommendations"] }
+          }
+        },
+        {
+          "name": "Record Product View (Increments Recommendation)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/recommendations/view/{{product_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "recommendations", "view", "{{product_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Shopping Cart",
+      "item": [
+        {
+          "name": "Get My Cart",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/cart", "host": ["{{baseUrl}}"], "path": ["api", "v1", "cart"] }
+          }
+        },
+        {
+          "name": "Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": {{product_id}},\n  \"quantity\": 2\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/cart/items", "host": ["{{baseUrl}}"], "path": ["api", "v1", "cart", "items"] }
+          }
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/cart/items/{{cart_item_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "cart", "items", "{{cart_item_id}}"] }
+          }
+        },
+        {
+          "name": "Remove Item from Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/cart/items/{{cart_item_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "cart", "items", "{{cart_item_id}}"] }
+          }
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/cart", "host": ["{{baseUrl}}"], "path": ["api", "v1", "cart"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03b - Customer Wishlist",
+      "item": [
+        {
+          "name": "Get My Wishlist",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{wishlistBaseUrl}}/api/v1/wishlist", "host": ["{{wishlistBaseUrl}}"], "path": ["api", "v1", "wishlist"] }
+          }
+        },
+        {
+          "name": "Add Item to Wishlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1\n}"
+            },
+            "url": { "raw": "{{wishlistBaseUrl}}/api/v1/wishlist/items", "host": ["{{wishlistBaseUrl}}"], "path": ["api", "v1", "wishlist", "items"] }
+          }
+        },
+        {
+          "name": "Check Product in Wishlist",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{wishlistBaseUrl}}/api/v1/wishlist/check/{{product_id}}", "host": ["{{wishlistBaseUrl}}"], "path": ["api", "v1", "wishlist", "check", "{{product_id}}"] }
+          }
+        },
+        {
+          "name": "Remove Item from Wishlist",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{wishlistBaseUrl}}/api/v1/wishlist/items/{{product_id}}", "host": ["{{wishlistBaseUrl}}"], "path": ["api", "v1", "wishlist", "items", "{{product_id}}"] }
+          }
+        },
+        {
+          "name": "Clear Wishlist",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{wishlistBaseUrl}}/api/v1/wishlist", "host": ["{{wishlistBaseUrl}}"], "path": ["api", "v1", "wishlist"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Order Placement & Tracking",
+      "item": [
+        {
+          "name": "Checkout Cart (Create Order)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deliveryAddress\": \"Flat 402, Sunshine Heights, Bangalore\",\n  \"customerPhone\": \"9999999994\",\n  \"paymentMethod\": \"WALLET\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/checkout", "host": ["{{baseUrl}}"], "path": ["api", "v1", "orders", "checkout"] }
+          }
+        },
+        {
+          "name": "Get My Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/my", "host": ["{{baseUrl}}"], "path": ["api", "v1", "orders", "my"] }
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/{{order_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "orders", "{{order_id}}"] }
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/{{order_id}}/cancel", "host": ["{{baseUrl}}"], "path": ["api", "v1", "orders", "{{order_id}}", "cancel"] }
+          }
+        },
+        {
+          "name": "Track Delivery Status for Order",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/deliveries/order/{{order_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "order", "{{order_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Payments & Wallet",
+      "item": [
+        {
+          "name": "Process Payment (Wallet / COD)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"customerId\": 4,\n  \"amount\": 1200.00,\n  \"paymentMethod\": \"WALLET\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/process", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "process"] }
+          }
+        },
+        {
+          "name": "Get My Payments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/my", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "my"] }
+          }
+        },
+        {
+          "name": "Get Customer Wallet",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet"] }
+          }
+        },
+        {
+          "name": "Top Up Customer Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2000.00\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet/topup", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet", "topup"] }
+          }
+        },
+        {
+          "name": "Get Wallet Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet/transactions", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet", "transactions"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Returns & Refunds",
+      "item": [
+        {
+          "name": "Request Return for Delivered Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"reason\": \"DEFECTIVE\",\n  \"comments\": \"Headphone microphone is not working\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/returns", "host": ["{{baseUrl}}"], "path": ["api", "v1", "returns"] }
+          }
+        },
+        {
+          "name": "Get My Returns",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/returns/my", "host": ["{{baseUrl}}"], "path": ["api", "v1", "returns", "my"] }
+          }
+        },
+        {
+          "name": "Get My Refunds",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/refunds/my", "host": ["{{baseUrl}}"], "path": ["api", "v1", "refunds", "my"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Product Reviews",
+      "item": [
+        {
+          "name": "Write Product Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{customer_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": {{product_id}},\n  \"rating\": 5,\n  \"comment\": \"Excellent product, sound quality is awesome!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/reviews", "host": ["{{baseUrl}}"], "path": ["api", "v1", "reviews"] }
+          }
+        },
+        {
+          "name": "Get Product Reviews",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/reviews/product/{{product_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "reviews", "product", "{{product_id}}"] }
+          }
+        },
+        {
+          "name": "Get My Reviews",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/reviews/my", "host": ["{{baseUrl}}"], "path": ["api", "v1", "reviews", "my"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Notifications",
+      "item": [
+        {
+          "name": "Get Customer Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customer_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/my", "host": ["{{baseUrl}}"], "path": ["api", "v1", "notifications", "my"] }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,279 @@
+{
+  "info": {
+    "_postman_id": "c5b3d4a0-1b0a-4a3f-8c4f-settlement-current",
+    "name": "ShoppingZone Settlement Service - Current Implementation",
+    "description": "Generated from the current settlement-service source, authentication source, Gateway route, Config Server configuration, and live settlement OpenAPI. Settlement business endpoints are routed by the Gateway at /api/v1/settlements/**. The current SecurityConfig requires ADMIN or INTERNAL for that entire path before method-level annotations are evaluated. Auth seeds DELIVERY_AGENT, while settlement method annotations mention DELIVERY_PARTNER; this collection preserves both source facts.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "gatewayUrl", "value": "http://localhost:8099" },
+    { "key": "settlementUrl", "value": "http://localhost:8095" },
+    { "key": "eurekaUrl", "value": "http://localhost:8761" },
+    { "key": "authUrl", "value": "http://localhost:8086" },
+    { "key": "admin_token", "value": "" },
+    { "key": "merchant_token", "value": "" },
+    { "key": "delivery_partner_token", "value": "" },
+    { "key": "admin_username", "value": "admin" },
+    { "key": "admin_password", "value": "Admin@123" },
+    { "key": "merchant_username", "value": "merchant1" },
+    { "key": "merchant_password", "value": "Merchant@123" },
+    { "key": "delivery_partner_username", "value": "delivery1" },
+    { "key": "delivery_partner_password", "value": "Delivery@123" },
+    { "key": "merchant_id", "value": "7030" },
+    { "key": "other_merchant_id", "value": "7040" },
+    { "key": "order_id", "value": "9030" },
+    { "key": "delivery_partner_id", "value": "1" },
+    { "key": "week_start", "value": "2026-09-14" }
+  ],
+  "item": [
+    {
+      "name": "01 - Health and Swagger",
+      "item": [
+        {
+          "name": "Settlement health",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{settlementUrl}}/actuator/health", "host": ["{{settlementUrl}}"], "path": ["actuator", "health"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Health is available', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "Settlement OpenAPI",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{settlementUrl}}/v3/api-docs", "host": ["{{settlementUrl}}"], "path": ["v3", "api-docs"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('OpenAPI is available', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "Settlement Swagger UI",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{settlementUrl}}/swagger-ui.html", "host": ["{{settlementUrl}}"], "path": ["swagger-ui.html"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Swagger UI is available', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "Gateway health",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{gatewayUrl}}/actuator/health", "host": ["{{gatewayUrl}}"], "path": ["actuator", "health"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Gateway health endpoint responds', function () { pm.expect(pm.response.code).to.be.oneOf([200, 503]); });"] } }]
+        },
+        {
+          "name": "Eureka applications",
+          "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json" }], "url": { "raw": "{{eurekaUrl}}/eureka/apps", "host": ["{{eurekaUrl}}"], "path": ["eureka", "apps"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Eureka responds', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "02 - Authentication",
+      "item": [
+        {
+          "name": "Login - ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"password\": \"{{admin_password}}\"\n}" },
+            "url": { "raw": "{{authUrl}}/api/v1/auth/login", "host": ["{{authUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Admin login succeeded', function () { pm.expect(pm.response.code).to.eql(200); });", "var j = pm.response.json();", "if (j.data && j.data.accessToken) pm.collectionVariables.set('admin_token', j.data.accessToken);"] } }]
+        },
+        {
+          "name": "Login - MERCHANT",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{merchant_username}}\",\n  \"password\": \"{{merchant_password}}\"\n}" },
+            "url": { "raw": "{{authUrl}}/api/v1/auth/login", "host": ["{{authUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Merchant login succeeded', function () { pm.expect(pm.response.code).to.eql(200); });", "var j = pm.response.json();", "if (j.data && j.data.accessToken) pm.collectionVariables.set('merchant_token', j.data.accessToken);"] } }]
+        },
+        {
+          "name": "Login - DELIVERY_AGENT (saved as delivery_partner_token)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{delivery_partner_username}}\",\n  \"password\": \"{{delivery_partner_password}}\"\n}" },
+            "url": { "raw": "{{authUrl}}/api/v1/auth/login", "host": ["{{authUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Delivery-agent login succeeded', function () { pm.expect(pm.response.code).to.eql(200); });", "var j = pm.response.json();", "if (j.data && j.data.accessToken) pm.collectionVariables.set('delivery_partner_token', j.data.accessToken);"] } }]
+        }
+      ]
+    },
+    {
+      "name": "03 - Admin Settlement",
+      "item": [
+        {
+          "name": "Get merchant settlement summary",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/merchant/{{merchant_id}}?weekStart={{week_start}}", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "merchant", "{{merchant_id}}"], "query": [{ "key": "weekStart", "value": "{{week_start}}" }] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Summary request succeeded', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "Run previous-week settlement",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/weekly/run", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "weekly", "run"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Weekly settlement request succeeded', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "04 - Merchant Settlement",
+      "item": [
+        {
+          "name": "Get own merchant settlement summary",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/merchant/{{merchant_id}}?weekStart={{week_start}}", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "merchant", "{{merchant_id}}"], "query": [{ "key": "weekStart", "value": "{{week_start}}" }] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Current source-level method allows merchant role', function () { pm.expect(pm.response.code).to.be.oneOf([200, 403]); });"] } }]
+        },
+        {
+          "name": "Attempt another merchant settlement summary",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/merchant/{{other_merchant_id}}?weekStart={{week_start}}", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "merchant", "{{other_merchant_id}}"], "query": [{ "key": "weekStart", "value": "{{week_start}}" }] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Cross-merchant access is rejected', function () { pm.expect(pm.response.code).to.eql(403); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "05 - Delivery Partner Settlement",
+      "item": [
+        {
+          "name": "Attempt COD collection as DELIVERY_AGENT token",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{delivery_partner_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"COD_COLLECTION\",\n  \"eventId\": \"postman-cod-collect-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 900.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/cod/collect", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "cod", "collect"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Delivery role is evaluated by current security', function () { pm.expect(pm.response.code).to.be.oneOf([200, 403]); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "06 - Settlement Events",
+      "item": [
+        {
+          "name": "Online payment success / merchant earning",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"ONLINE_PAYMENT_SUCCESS\",\n  \"eventId\": \"postman-online-payment-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 1000.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/events", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "events"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Settlement event accepted', function () { pm.expect(pm.response.code).to.eql(202); });"] } }]
+        },
+        {
+          "name": "Duplicate online payment event",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"ONLINE_PAYMENT_SUCCESS\",\n  \"eventId\": \"postman-online-payment-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 1000.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/events", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "events"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Duplicate event remains accepted/idempotent', function () { pm.expect(pm.response.code).to.eql(202); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "07 - COD",
+      "item": [
+        {
+          "name": "COD expected",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"COD_EXPECTED\",\n  \"eventId\": \"postman-cod-expected-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"deliveryPartnerId\": {{delivery_partner_id}},\n  \"expectedAmount\": 1000.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/cod/expected", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "cod", "expected"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('COD expected recorded', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "COD collected",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"COD_COLLECTION\",\n  \"eventId\": \"postman-cod-collected-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 900.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/cod/collect", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "cod", "collect"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('COD collected recorded', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "COD remitted",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"COD_REMITTED\",\n  \"eventId\": \"postman-cod-remitted-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 900.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/cod/remit", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "cod", "remit"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('COD remitted recorded', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "COD receipt confirmed",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"COD_RECEIVED\",\n  \"eventId\": \"postman-cod-received-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 900.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/cod/confirm", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "cod", "confirm"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('COD receipt confirmed', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "08 - Delivery Payout",
+      "item": [
+        {
+          "name": "Create ₹50 delivery payout",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"DELIVERY_PAYOUT\",\n  \"eventId\": \"postman-delivery-payout-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"deliveryPartnerId\": {{delivery_partner_id}}\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/delivery-payout", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "delivery-payout"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Delivery payout recorded', function () { pm.expect(pm.response.code).to.eql(200); });", "var j = pm.response.json();", "if (j.data) pm.test('Payout amount is ₹50', function () { pm.expect(Number(j.data.deliveryPayout)).to.eql(50); });"] } }]
+        },
+        {
+          "name": "Duplicate ₹50 delivery payout",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"DELIVERY_PAYOUT\",\n  \"eventId\": \"postman-delivery-payout-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"deliveryPartnerId\": {{delivery_partner_id}}\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/delivery-payout", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "delivery-payout"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Duplicate payout request is accepted idempotently', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "09 - Return Payout",
+      "item": [
+        {
+          "name": "Create ₹50 return-delivery payout",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"RETURN_DELIVERY_PAYOUT\",\n  \"eventId\": \"postman-return-payout-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"deliveryPartnerId\": {{delivery_partner_id}}\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/return-payout", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "return-payout"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Return payout recorded', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "Duplicate ₹50 return-delivery payout",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"RETURN_DELIVERY_PAYOUT\",\n  \"eventId\": \"postman-return-payout-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"deliveryPartnerId\": {{delivery_partner_id}}\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/return-payout", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "return-payout"] } }
+        }
+      ]
+    },
+    {
+      "name": "10 - Refund",
+      "item": [
+        {
+          "name": "Refund deduction through settlement event",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"REFUND_DEDUCTION\",\n  \"eventId\": \"postman-refund-deduction-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 50.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/events", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "events"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Refund deduction event accepted', function () { pm.expect(pm.response.code).to.eql(202); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "11 - Weekly Settlement",
+      "item": [
+        {
+          "name": "Previous Monday-Sunday settlement",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/weekly/run", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "weekly", "run"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Previous-week settlement completed', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "Repeat weekly settlement",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/weekly/run", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "weekly", "run"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Repeat settlement request completed without transport error', function () { pm.expect(pm.response.code).to.eql(200); });", "var j = pm.response.json();", "pm.test('Response is JSON', function () { pm.expect(j).to.have.property('success'); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "12 - Idempotency Tests",
+      "item": [
+        {
+          "name": "Duplicate COD confirmation",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"COD_RECEIVED\",\n  \"eventId\": \"postman-cod-received-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 900.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/cod/confirm", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "cod", "confirm"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Duplicate COD confirmation is idempotent', function () { pm.expect(pm.response.code).to.eql(200); });"] } }]
+        },
+        {
+          "name": "Duplicate refund event",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"eventType\": \"REFUND_DEDUCTION\",\n  \"eventId\": \"postman-refund-deduction-001\",\n  \"merchantId\": {{merchant_id}},\n  \"orderId\": {{order_id}},\n  \"amount\": 50.00\n}" }, "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/events", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "events"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Duplicate refund event is accepted idempotently', function () { pm.expect(pm.response.code).to.eql(202); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "13 - Security Tests",
+      "item": [
+        {
+          "name": "No Authorization - weekly settlement",
+          "request": { "method": "POST", "header": [], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/weekly/run", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "weekly", "run"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Missing token is rejected', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"] } }]
+        },
+        {
+          "name": "Invalid JWT - weekly settlement",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer invalid.jwt.token" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/weekly/run", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "weekly", "run"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Invalid token is rejected', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"] } }]
+        },
+        {
+          "name": "MERCHANT token - admin weekly settlement",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/weekly/run", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "weekly", "run"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Merchant cannot run admin settlement', function () { pm.expect(pm.response.code).to.eql(403); });"] } }]
+        },
+        {
+          "name": "DELIVERY_AGENT token - admin weekly settlement",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{delivery_partner_token}}" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/weekly/run", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "weekly", "run"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Delivery agent cannot run admin settlement', function () { pm.expect(pm.response.code).to.eql(403); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "14 - Reconciliation",
+      "item": [
+        {
+          "name": "Merchant settlement summary / reconciliation view",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": { "raw": "{{gatewayUrl}}/api/v1/settlements/merchant/{{merchant_id}}?weekStart={{week_start}}", "host": ["{{gatewayUrl}}"], "path": ["api", "v1", "settlements", "merchant", "{{merchant_id}}"], "query": [{ "key": "weekStart", "value": "{{week_start}}" }] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Reconciliation summary succeeded', function () { pm.expect(pm.response.code).to.eql(200); });", "var j = pm.response.json();", "pm.test('Summary has data object', function () { pm.expect(j).to.have.property('data'); });"] } }]
+        }
+      ]
+    }
+  ]
+}

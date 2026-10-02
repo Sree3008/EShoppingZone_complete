@@ -1,0 +1,273 @@
+{
+  "info": {
+    "_postman_id": "shoppingzone-merchant-collection-v1",
+    "name": "ShoppingZone - 2. MERCHANT Collection",
+    "description": "Postman collection for MERCHANT role in EShoppingZone microservices. Covers Auth, Profile, Product Catalog, Order Fulfillment, Inventory & Restock, Weekly Settlement Ledger, and Merchant Digital Wallet.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8099" },
+    { "key": "merchant_username", "value": "merchant1" },
+    { "key": "merchant_password", "value": "Merchant@123" },
+    { "key": "merchant_token", "value": "" },
+    { "key": "merchant_id", "value": "2" },
+    { "key": "product_id", "value": "1" },
+    { "key": "order_id", "value": "1" },
+    { "key": "week_start", "value": "2026-09-28" }
+  ],
+  "item": [
+    {
+      "name": "01 - Authentication & Profile",
+      "item": [
+        {
+          "name": "Merchant Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{merchant_username}}\",\n  \"password\": \"{{merchant_password}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data && json.data.accessToken) {",
+                  "    pm.collectionVariables.set('merchant_token', json.data.accessToken);",
+                  "    console.log('Merchant token saved');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Merchant Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/profiles/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "profiles", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Product Management",
+      "item": [
+        {
+          "name": "List My Products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/products", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "products"] }
+          }
+        },
+        {
+          "name": "Add New Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchant_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Wireless Noise Cancelling Headphones\",\n  \"description\": \"Premium over-ear Bluetooth headphones with active noise cancellation\",\n  \"price\": 4999.00,\n  \"category\": \"ELECTRONICS\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1505740420928-5e560c06d30e\",\n  \"stock\": 50\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/products", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "products"] }
+          }
+        },
+        {
+          "name": "Update Product Details",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchant_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Wireless Pro Noise Cancelling Headphones\",\n  \"description\": \"Updated: Premium over-ear Bluetooth 5.3 headphones\",\n  \"price\": 4799.00,\n  \"category\": \"ELECTRONICS\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1505740420928-5e560c06d30e\",\n  \"stock\": 45\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/products/{{product_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "products", "{{product_id}}"] }
+          }
+        },
+        {
+          "name": "Change Product Status (Active / Inactive)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchant_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/products/{{product_id}}/status", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "products", "{{product_id}}", "status"] }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/products/{{product_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "products", "{{product_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Order Fulfillment",
+      "item": [
+        {
+          "name": "List Merchant Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/orders", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "orders"] }
+          }
+        },
+        {
+          "name": "Get Order Details",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/orders/{{order_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "orders", "{{order_id}}"] }
+          }
+        },
+        {
+          "name": "Accept & Process Order",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/orders/{{order_id}}/process", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "orders", "{{order_id}}", "process"] }
+          }
+        },
+        {
+          "name": "Mark Order Ready for Delivery",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/orders/{{order_id}}/ready-for-delivery", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "orders", "{{order_id}}", "ready-for-delivery"] }
+          }
+        },
+        {
+          "name": "Reject Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchant_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Item currently out of stock\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/merchant/orders/{{order_id}}/reject", "host": ["{{baseUrl}}"], "path": ["api", "v1", "merchant", "orders", "{{order_id}}", "reject"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Inventory Management",
+      "item": [
+        {
+          "name": "Check Product Stock",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory/{{product_id}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "inventory", "{{product_id}}"] }
+          }
+        },
+        {
+          "name": "Restock Product Inventory",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{merchant_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 25\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory/{{product_id}}/restock", "host": ["{{baseUrl}}"], "path": ["api", "v1", "inventory", "{{product_id}}", "restock"] }
+          }
+        },
+        {
+          "name": "Get Low-Stock Products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory/low-stock", "host": ["{{baseUrl}}"], "path": ["api", "v1", "inventory", "low-stock"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Weekly Settlement & Earnings",
+      "item": [
+        {
+          "name": "Get My Weekly Settlement Breakdown",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settlements/merchant/{{merchant_id}}?weekStart={{week_start}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settlements", "merchant", "{{merchant_id}}"],
+              "query": [{ "key": "weekStart", "value": "{{week_start}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Merchant Digital Wallet",
+      "item": [
+        {
+          "name": "Get My Wallet Details",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet"] }
+          }
+        },
+        {
+          "name": "Get Available Wallet Balance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet/balance", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet", "balance"] }
+          }
+        },
+        {
+          "name": "Get Wallet Transactions (Settlement Payouts)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallet/transactions", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallet", "transactions"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Notifications",
+      "item": [
+        {
+          "name": "Get Merchant Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{merchant_token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/my", "host": ["{{baseUrl}}"], "path": ["api", "v1", "notifications", "my"] }
+          }
+        }
+      ]
+    }
+  ]
+}
