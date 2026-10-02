@@ -1,0 +1,137 @@
+<div class="page-content">
+  <div class="container">
+    <div class="shop-layout">
+
+      <!-- Sidebar Filters -->
+      <aside class="filters-sidebar card">
+        <div class="sidebar-header">
+          <h3>Filters</h3>
+          <button class="clear-btn" (click)="clearFilters()" *ngIf="selectedCategory || searchKeyword">Clear All</button>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-section">
+          <h4>Category</h4>
+          <div class="filter-options">
+            <label class="filter-option" (click)="selectedCategory=''; onCategoryChange()">
+              <input type="radio" name="cat" [checked]="!selectedCategory" />
+              <span>All Categories</span>
+            </label>
+            <label
+              class="filter-option"
+              *ngFor="let cat of categories"
+              (click)="selectedCategory = cat.name; onCategoryChange()"
+            >
+              <input type="radio" name="cat" [checked]="selectedCategory === cat.name" />
+              <span>{{ cat.name }}</span>
+            </label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="shop-main">
+
+        <!-- Top Bar -->
+        <div class="shop-topbar">
+          <div class="topbar-left">
+            <h2 *ngIf="!loading">
+              {{ selectedCategory || 'All Products' }}
+              <span class="count-text">{{ totalElements }} items</span>
+            </h2>
+          </div>
+        </div>
+
+        <!-- Active filter tags -->
+        <div class="active-tags" *ngIf="selectedCategory || searchKeyword">
+          <div class="active-tag" *ngIf="selectedCategory">
+            {{ selectedCategory }}
+            <button (click)="selectedCategory=''; onCategoryChange()">×</button>
+          </div>
+          <div class="active-tag" *ngIf="searchKeyword">
+            "{{ searchKeyword }}"
+            <button (click)="searchKeyword=''; onSearch()">×</button>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" *ngIf="loading">
+          <div class="spinner"></div>
+          <p>Loading products...</p>
+        </div>
+
+        <!-- Grid -->
+        <div class="products-grid" *ngIf="!loading">
+          <div
+            class="product-card"
+            *ngFor="let product of products; let i = index"
+            [routerLink]="['/products', product.id]"
+          >
+            <div class="product-img-wrap">
+              <span class="best-seller-badge" *ngIf="i === 0 && currentPage === 0">Best Seller</span>
+              <button class="wishlist-icon-btn" (click)="toggleWishlist($event, product)"
+                [class.wishlisted]="wishlistedIds.has(product.id)"
+                [title]="wishlistedIds.has(product.id) ? 'Remove from wishlist' : 'Add to wishlist'">
+                <svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                  [attr.fill]="wishlistedIds.has(product.id) ? 'currentColor' : 'none'">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+              </button>
+              <div class="wl-toast" *ngIf="wishlistMessages[product.id]">{{ wishlistMessages[product.id] }}</div>
+              <img
+                [src]="product.imageUrl || 'https://placehold.co/220x180/f9f7ff/6c2bd9?text=' + product.name.charAt(0)"
+                [alt]="product.name"
+                (error)="$any($event.target).src='https://placehold.co/220x180/f9f7ff/6c2bd9?text=Product'"
+              />
+            </div>
+            <div class="product-body">
+              <span class="cat-label">{{ product.categoryName }}</span>
+              <p class="product-name" [title]="product.name">{{ product.name }}</p>
+              <div class="rating-row">
+                <span class="star-filled" style="font-size:12px;">★★★★</span>
+                <span class="star-empty" style="font-size:12px;">★</span>
+                <span class="stars-text">4.2</span>
+                <span class="review-count">({{ (product.id * 7) % 900 + 100 }})</span>
+              </div>
+              <div class="price-row">
+                <span class="price-now">{{ formatPrice(product.price) }}</span>
+                <span class="price-old">{{ formatPrice(getOriginalPrice(product.price)) }}</span>
+                <span class="off-badge">{{ getDiscountPct(product.price) }}% OFF</span>
+              </div>
+              <button class="add-to-cart-btn" (click)="addToCart($event, product)">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.66a2 2 0 001.99-1.78L23 6H6"/>
+                </svg>
+                <span>{{ cartMessages[product.id] || 'Add to Cart' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="no-results" *ngIf="products.length === 0">
+            <p style="font-size:48px">😕</p>
+            <h3>No products found</h3>
+            <p>Try a different search or category</p>
+            <button class="btn btn-primary" style="margin-top:16px" (click)="clearFilters()">Clear Filters</button>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="totalPages > 1 && !loading">
+          <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button
+            *ngFor="let p of getPagesArray()"
+            class="page-btn"
+            [class.page-active]="p === currentPage"
+            (click)="goToPage(p)"
+          >{{ p + 1 }}</button>
+          <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage >= totalPages - 1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

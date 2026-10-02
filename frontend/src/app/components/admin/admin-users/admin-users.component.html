@@ -1,0 +1,81 @@
+<div class="page-wrapper">
+  <h1 class="page-title">User Management</h1>
+
+  <div *ngIf="successMsg" class="success-banner">{{ successMsg }}</div>
+  <div *ngIf="errorMsg" class="error-banner">{{ errorMsg }}</div>
+
+  <!-- Filters -->
+  <div class="card filter-row">
+    <label>Role:</label>
+    <select [(ngModel)]="filterRole" (change)="loadUsers()">
+      <option value="">All Roles</option>
+      <option value="ROLE_USER">User</option>
+      <option value="ROLE_ADMIN">Admin</option>
+      <option value="ROLE_SELLER">Seller</option>
+      <option value="ROLE_DELIVERY">Delivery</option>
+    </select>
+
+    <label>Status:</label>
+    <select [(ngModel)]="filterStatus" (change)="loadUsers()">
+      <option value="">All Statuses</option>
+      <option value="ACTIVE">Active</option>
+      <option value="BLOCKED">Blocked</option>
+    </select>
+
+    <button class="btn-update" (click)="loadUsers()">Refresh</button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading users…</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!loading" class="card table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.id }}</td>
+          <td>{{ user.firstName || '' }} {{ user.lastName || '' }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="badge" [ngClass]="roleBadgeClass(user.roles)">
+              {{ user.roles?.join(', ') || 'N/A' }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="statusBadgeClass(user.status)">
+              {{ user.status || 'N/A' }}
+            </span>
+          </td>
+          <td>
+            <button
+              *ngIf="user.status !== 'ACTIVE'"
+              class="btn btn-approve"
+              (click)="updateStatus(user, 'ACTIVE')"
+            >Activate</button>
+            <button
+              *ngIf="user.status === 'ACTIVE'"
+              class="btn btn-reject"
+              (click)="updateStatus(user, 'BLOCKED')"
+            >Block</button>
+          </td>
+        </tr>
+        <tr *ngIf="users.length === 0">
+          <td colspan="6" class="empty-row">No users found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+<div class="page-wrapper">
+  <h1 class="page-title">Admin Dashboard</h1>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading stats…</p>
+  </div>
+
+  <div *ngIf="errorMsg" class="error-banner">{{ errorMsg }}</div>
+
+  <div *ngIf="!loading" class="stats-grid">
+    <div class="stat-card" *ngFor="let stat of stats" [style.border-left-color]="stat.color">
+      <div class="stat-icon">{{ stat.icon }}</div>
+      <div class="stat-count" [style.color]="stat.color">{{ stat.count }}</div>
+      <div class="stat-label">{{ stat.label }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading" class="refresh-row">
+    <button class="btn-refresh" (click)="loadStats()">↻ Refresh</button>
+  </div>
+</div>

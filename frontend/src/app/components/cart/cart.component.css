@@ -1,0 +1,261 @@
+.empty-state {
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.empty-icon {
+  margin-bottom: 20px;
+}
+
+.empty-state h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--text-gray);
+  font-size: 14.5px;
+}
+
+.cart-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cart-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.cart-header h2 span {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-gray);
+  margin-left: 6px;
+}
+
+.clear-all-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.cart-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.item-img {
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+  background: #f9f7ff;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-unit-price {
+  font-size: 12.5px;
+  color: var(--text-gray);
+}
+
+.qty-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.qty-ctrl button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: var(--primary-light);
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.qty-ctrl span {
+  min-width: 38px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.item-subtotal {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--text-dark);
+  min-width: 80px;
+  text-align: right;
+}
+
+.remove-item-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #d1d5db;
+  padding: 4px;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.remove-item-btn:hover { color: var(--danger); }
+
+.continue-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+/* Summary */
+.summary-card {
+  padding: 24px;
+  position: sticky;
+  top: 90px;
+}
+
+.summary-card h3 {
+  font-size: 17px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: var(--text-dark);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.free-tag {
+  color: var(--accent-green);
+  font-weight: 700;
+}
+
+.summary-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+}
+
+.total-amount {
+  font-size: 20px;
+  color: var(--primary);
+}
+
+.free-ship-bar {
+  margin: 14px 0;
+  padding: 12px;
+  background: #f0fdf4;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: #374151;
+}
+
+.free-ship-bar p { margin-bottom: 8px; }
+
+.ship-progress {
+  height: 5px;
+  background: #d1fae5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ship-fill {
+  height: 100%;
+  background: var(--accent-green);
+  border-radius: 3px;
+  transition: width 0.4s;
+}
+
+.checkout-cta {
+  width: 100%;
+  padding: 13px;
+  font-size: 14.5px;
+  border-radius: 10px;
+  margin-top: 16px;
+}
+
+.secure-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-gray);
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .cart-layout { grid-template-columns: 1fr; }
+}

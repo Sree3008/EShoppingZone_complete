@@ -1,0 +1,69 @@
+<div class="refunds-page">
+  <div class="container">
+
+    <a routerLink="/profile" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Profile
+    </a>
+
+    <h2 class="page-title">My Refunds</h2>
+
+    <div class="loading" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Loading your refunds...</p>
+    </div>
+
+    <div *ngIf="!loading">
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="refunds.length === 0">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+          </svg>
+        </div>
+        <h3>No refunds found</h3>
+        <p>Your refund requests will appear here once processed.</p>
+        <a routerLink="/orders" class="btn btn-primary" style="margin-top:16px">View My Orders</a>
+      </div>
+
+      <!-- Refunds List -->
+      <div class="refunds-list" *ngIf="refunds.length > 0">
+        <div class="refund-card" *ngFor="let r of refunds">
+          <div class="refund-header">
+            <div class="refund-ref-wrap">
+              <span class="ref-label">REF</span>
+              <span class="ref-value">{{ r.referenceNumber || r.id }}</span>
+            </div>
+            <span class="status-badge"
+              [style.background]="getStatusColor(r.status) + '18'"
+              [style.color]="getStatusColor(r.status)"
+              [style.border-color]="getStatusColor(r.status) + '40'">
+              {{ r.status }}
+            </span>
+          </div>
+
+          <div class="refund-body">
+            <div class="refund-amount-row">
+              <div class="amount-block">
+                <span class="detail-label">Refund Amount</span>
+                <span class="refund-amount">{{ formatPrice(r.amount || r.refundAmount) }}</span>
+              </div>
+              <div class="detail-item" *ngIf="r.orderId">
+                <span class="detail-label">Order ID</span>
+                <span class="detail-val">#{{ r.orderId }}</span>
+              </div>
+              <div class="detail-item" *ngIf="r.createdAt">
+                <span class="detail-label">Date</span>
+                <span class="detail-val">{{ r.createdAt | date:'d MMM y' }}</span>
+              </div>
+            </div>
+            <div class="reason-block" *ngIf="r.reason">
+              <span class="detail-label">Reason</span>
+              <p class="reason-text">{{ r.reason }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -470,17 +470,27 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InvalidRefundException("Refund can only be requested for completed payments");
         }
 
-        // Verify that the order status is RETURNED
+        // Verify that the order status is RETURNED or CANCELLED (cancellation refunds are also valid)
+        boolean isCancellationRefund = "Order Cancellation".equals(request.getReason());
+        String actualOrderStatus = null;
         try {
             ApiResponse<OrderDto> orderResponse = orderClient.getOrderInternal(request.getOrderId());
-            if (orderResponse == null || orderResponse.getData() == null || !"RETURNED".equalsIgnoreCase(orderResponse.getData().getStatus())) {
-                throw new InvalidRefundException("Refund can only be requested for returned orders");
+            if (orderResponse != null && orderResponse.getData() != null) {
+                actualOrderStatus = orderResponse.getData().getStatus();
+            }
+            boolean validStatus = "RETURNED".equalsIgnoreCase(actualOrderStatus)
+                    || "CANCELLED".equalsIgnoreCase(actualOrderStatus);
+            if (!validStatus) {
+                throw new InvalidRefundException("Refund can only be requested for returned or cancelled orders");
             }
         } catch (InvalidRefundException ire) {
             throw ire;
         } catch (Exception e) {
             log.error("Failed to verify order status for refund on order {}: {}", request.getOrderId(), e.getMessage());
-            throw new InvalidRefundException("Refund can only be requested for returned orders");
+            if (!isCancellationRefund) {
+                throw new InvalidRefundException("Refund can only be requested for returned or cancelled orders");
+            }
+            // If it's a cancellation refund and we can't reach order-service, proceed anyway
         }
 
         // Idempotency / duplicate protection: check if an active refund (PENDING or APPROVED) already exists for this order/return
@@ -509,9 +519,36 @@ public class PaymentServiceImpl implements PaymentService {
         refund.setCustomerId(payment.getCustomerId());
         refund.setAmount(request.getAmount());
         refund.setReason(request.getReason() != null ? request.getReason() : "Order return refund");
-        refund.setStatus(RefundStatus.PENDING);
         refund.setRefundReference(refNum);
 
+        // Auto-approve cancellation refunds immediately — credit wallet without admin intervention
+        if (isCancellationRefund) {
+            refund.setStatus(RefundStatus.APPROVED);
+            Refund saved = refundRepository.save(refund);
+            try {
+                WalletTransferRequest debitPlatform = new WalletTransferRequest(
+                        PLATFORM_WALLET_USER_ID, refund.getAmount(), refNum,
+                        "Cancellation refund for Order #" + refund.getOrderId());
+                walletClient.debit(debitPlatform);
+
+                WalletTransferRequest creditCustomer = new WalletTransferRequest(
+                        refund.getCustomerId(), refund.getAmount(), refNum,
+                        "Cancellation refund credited for Order #" + refund.getOrderId());
+                walletClient.credit(creditCustomer);
+
+                payment.setStatus(PaymentStatus.REFUNDED);
+                paymentRepository.save(payment);
+                log.info("Cancellation refund auto-approved and wallet credited: {} for orderId: {}", refNum, request.getOrderId());
+            } catch (Exception e) {
+                log.error("Failed to credit wallet for cancellation refund on order {}: {}", request.getOrderId(), e.getMessage());
+                // Refund record is saved as APPROVED; manual reconciliation may be needed
+            }
+            audit("REFUND_INITIATED", "REFUND", String.valueOf(saved.getId()), "SUCCESS", null,
+                    safeMeta("orderId", request.getOrderId(), "paymentId", payment.getId(), "amount", request.getAmount(), "refundReference", refNum, "customerId", payment.getCustomerId(), "autoApproved", true));
+            return RefundDto.fromEntity(saved);
+        }
+
+        refund.setStatus(RefundStatus.PENDING);
         Refund saved = refundRepository.save(refund);
         log.info("Internal refund request created: {} for orderId: {}", refNum, request.getOrderId());
         audit("REFUND_INITIATED", "REFUND", String.valueOf(saved.getId()), "SUCCESS", null,

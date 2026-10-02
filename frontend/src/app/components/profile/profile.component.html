@@ -1,0 +1,106 @@
+<div class="page-content">
+  <div class="container">
+    <h2 class="page-title">My Profile</h2>
+
+    <div class="loading" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <div class="profile-layout" *ngIf="!loading">
+      <!-- Left: Profile Info -->
+      <div class="profile-left">
+
+        <!-- Account Info (read-only from auth) -->
+        <div class="section card">
+          <div class="profile-avatar">
+            <span>{{ (authUser?.username || 'U').charAt(0).toUpperCase() }}</span>
+          </div>
+          <h3>{{ authUser?.fullName }}</h3>
+          <p class="profile-username">{{ '@' }}{{ authUser?.username }}</p>
+          <p class="profile-email">{{ authUser?.email }}</p>
+          <span class="badge badge-success">{{ authUser?.role }}</span>
+        </div>
+
+        <!-- Edit Profile -->
+        <div class="section card">
+          <h3>Edit Profile</h3>
+
+          <div class="alert alert-success" *ngIf="profileMsg && profileMsg.includes('✓')">{{ profileMsg }}</div>
+          <div class="alert alert-error" *ngIf="profileMsg && !profileMsg.includes('✓')">{{ profileMsg }}</div>
+
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" [(ngModel)]="profile.firstName" placeholder="First name" />
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" [(ngModel)]="profile.lastName" placeholder="Last name" />
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" [(ngModel)]="profile.phoneNumber" placeholder="Phone number" />
+          </div>
+
+          <button class="btn btn-primary" (click)="saveProfile()" [disabled]="saving">
+            {{ saving ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Wallet & Quick Links -->
+      <div class="profile-right">
+
+        <!-- Wallet -->
+        <div class="section card wallet-card">
+          <h3>👛 My Wallet</h3>
+          <div class="wallet-balance">{{ formatPrice(wallet?.balance || 0) }}</div>
+          <p class="wallet-label">Available Balance</p>
+
+          <div class="topup-row">
+            <input
+              type="number"
+              [(ngModel)]="topupAmount"
+              min="1"
+              placeholder="Amount to add"
+              class="topup-input"
+            />
+            <button class="btn btn-primary" (click)="topupWallet()" [disabled]="topupLoading">
+              {{ topupLoading ? '...' : 'Add Money' }}
+            </button>
+          </div>
+
+          <div class="alert alert-success" *ngIf="topupMsg && topupMsg.includes('✓')" style="margin-top: 8px">{{ topupMsg }}</div>
+          <div class="alert alert-error" *ngIf="topupMsg && !topupMsg.includes('✓')" style="margin-top: 8px">{{ topupMsg }}</div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="section card">
+          <h3>Quick Links</h3>
+          <div class="quick-links">
+            <a routerLink="/orders" class="quick-link">
+              <span>📦</span> My Orders
+            </a>
+            <a routerLink="/wishlist" class="quick-link">
+              <span>♡</span> Wishlist
+            </a>
+            <a routerLink="/returns" class="quick-link">
+              <span>🔄</span> My Returns
+            </a>
+            <a routerLink="/wallet-transactions" class="quick-link">
+              <span>💳</span> Wallet Transactions
+            </a>
+            <a routerLink="/my-refunds" class="quick-link">
+              <span>💰</span> My Refunds
+            </a>
+            <a routerLink="/my-reviews" class="quick-link">
+              <span>⭐</span> My Reviews
+            </a>
+            <a routerLink="/products" class="quick-link">
+              <span>🛍️</span> Continue Shopping
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

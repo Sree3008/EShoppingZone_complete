@@ -63,6 +63,12 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                 })
                 .build();
 
+        // Pass CORS preflight requests through without auth
+        if (request.getHeaders().containsKey("Origin") &&
+                "OPTIONS".equalsIgnoreCase(request.getMethod().name())) {
+            return chain.filter(exchange.mutate().request(sanitizedRequest).build());
+        }
+
         // Check if path is public
         boolean isPublic = PUBLIC_ENDPOINTS.stream().anyMatch(path::startsWith);
         // Public browse for products (GET only on /api/v1/products/**)

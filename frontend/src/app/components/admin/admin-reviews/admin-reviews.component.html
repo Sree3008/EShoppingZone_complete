@@ -1,0 +1,103 @@
+<div class="page-wrapper">
+  <h1 class="page-title">Review Management</h1>
+
+  <div *ngIf="successMsg" class="success-banner">{{ successMsg }}</div>
+  <div *ngIf="errorMsg" class="error-banner">{{ errorMsg }}</div>
+
+  <!-- Tabs -->
+  <div class="tab-row">
+    <button class="tab-btn" [class.active]="activeTab === 'pending'" (click)="activeTab = 'pending'">Pending</button>
+    <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="activeTab = 'all'">All Reviews</button>
+  </div>
+
+  <!-- Pending Tab -->
+  <div *ngIf="activeTab === 'pending'" class="card table-card">
+    <div *ngIf="loadingPending" class="loading-state"><div class="spinner"></div></div>
+    <table *ngIf="!loadingPending">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Product</th>
+          <th>Rating</th>
+          <th>Review</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let r of pendingReviews">
+          <tr>
+            <td>#{{ r.id }}</td>
+            <td>{{ r.productName || r.productId }}</td>
+            <td class="stars">{{ stars(r.rating) }}</td>
+            <td class="review-text">{{ truncate(r.comment || r.review) }}</td>
+            <td>{{ r.createdAt | date:'dd MMM yyyy' }}</td>
+            <td class="action-cell">
+              <button class="btn btn-approve" (click)="approve(r.id)">Approve</button>
+              <button *ngIf="!showRejectFormMap[r.id]" class="btn btn-reject" (click)="showRejectForm(r.id)">Reject</button>
+            </td>
+          </tr>
+          <tr *ngIf="showRejectFormMap[r.id]">
+            <td colspan="6">
+              <div class="inline-form">
+                <textarea [(ngModel)]="rejectReasonMap[r.id]" placeholder="Enter rejection reason…" rows="2" class="reason-textarea"></textarea>
+                <button class="btn btn-reject" (click)="confirmReject(r.id)">Confirm Reject</button>
+                <button class="btn btn-update" (click)="showRejectFormMap[r.id] = false">Cancel</button>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+        <tr *ngIf="pendingReviews.length === 0">
+          <td colspan="6" class="empty-row">No pending reviews.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- All Reviews Tab -->
+  <div *ngIf="activeTab === 'all'" class="card table-card">
+    <div *ngIf="loadingAll" class="loading-state"><div class="spinner"></div></div>
+    <table *ngIf="!loadingAll">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Product</th>
+          <th>Rating</th>
+          <th>Review</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let r of allReviews">
+          <tr>
+            <td>#{{ r.id }}</td>
+            <td>{{ r.productName || r.productId }}</td>
+            <td class="stars">{{ stars(r.rating) }}</td>
+            <td class="review-text">{{ truncate(r.comment || r.review) }}</td>
+            <td><span class="badge" [ngClass]="statusBadgeClass(r.status)">{{ r.status }}</span></td>
+            <td>{{ r.createdAt | date:'dd MMM yyyy' }}</td>
+            <td class="action-cell">
+              <button *ngIf="r.status === 'PENDING'" class="btn btn-approve" (click)="approve(r.id)">Approve</button>
+              <button *ngIf="r.status === 'PENDING' && !showRejectFormMap[r.id]" class="btn btn-reject" (click)="showRejectForm(r.id)">Reject</button>
+              <button *ngIf="r.status === 'APPROVED'" class="btn btn-update" (click)="hide(r.id)">Hide</button>
+            </td>
+          </tr>
+          <tr *ngIf="showRejectFormMap[r.id]">
+            <td colspan="7">
+              <div class="inline-form">
+                <textarea [(ngModel)]="rejectReasonMap[r.id]" placeholder="Enter rejection reason…" rows="2" class="reason-textarea"></textarea>
+                <button class="btn btn-reject" (click)="confirmReject(r.id)">Confirm Reject</button>
+                <button class="btn btn-update" (click)="showRejectFormMap[r.id] = false">Cancel</button>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+        <tr *ngIf="allReviews.length === 0">
+          <td colspan="7" class="empty-row">No reviews found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

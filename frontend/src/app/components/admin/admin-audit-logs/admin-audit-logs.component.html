@@ -1,0 +1,44 @@
+<div class="page-wrapper">
+  <h1 class="page-title">Audit Logs</h1>
+
+  <div *ngIf="errorMsg" class="error-banner">{{ errorMsg }}</div>
+
+  <!-- Filters -->
+  <div class="card filter-row">
+    <label>Action:</label>
+    <input type="text" [(ngModel)]="filterAction" placeholder="Filter by action…" class="text-input" />
+    <label>User ID:</label>
+    <input type="text" [(ngModel)]="filterUser" placeholder="Filter by user ID…" class="text-input" />
+    <button class="btn btn-update" (click)="loadLogs()">Search</button>
+  </div>
+
+  <div *ngIf="loading" class="loading-state"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading" class="card table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User ID</th>
+          <th>Action</th>
+          <th>Resource</th>
+          <th>Details</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs">
+          <td>#{{ log.id }}</td>
+          <td>{{ log.userId || 'N/A' }}</td>
+          <td><span class="badge badge-action">{{ log.action }}</span></td>
+          <td>{{ log.resource || log.entityType || 'N/A' }}</td>
+          <td class="detail-cell">{{ log.details || log.description || '' }}</td>
+          <td>{{ log.timestamp || log.createdAt | date:'dd MMM yyyy, HH:mm' }}</td>
+        </tr>
+        <tr *ngIf="logs.length === 0">
+          <td colspan="6" class="empty-row">No audit logs found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

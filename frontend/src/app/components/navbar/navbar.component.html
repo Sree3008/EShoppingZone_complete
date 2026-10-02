@@ -1,0 +1,157 @@
+<header class="header">
+  <div class="container header-inner">
+
+    <!-- Logo -->
+    <a routerLink="/" class="logo">
+      <div class="logo-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+      </div>
+      <span>ShopEase</span>
+    </a>
+
+    <!-- Nav Links -->
+    <nav class="nav-links">
+      <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a>
+      <a routerLink="/products" class="nav-link" routerLinkActive="active">Shop</a>
+      <a routerLink="/products" class="nav-link" [queryParams]="{sort:'discount'}">Deals</a>
+
+      <!-- Categories Dropdown -->
+      <div class="cat-nav-wrap" (mouseenter)="showCategories=true" (mouseleave)="showCategories=false">
+        <button class="nav-link cat-nav-btn">
+          Categories
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:4px">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="cat-dropdown" *ngIf="showCategories">
+          <div class="cat-dropdown-grid">
+            <button
+              class="cat-dropdown-item"
+              *ngFor="let cat of categories"
+              (click)="goToCategory(cat)"
+            >
+              <span class="cat-dd-icon">{{ categoryIcons[cat] || '🛍️' }}</span>
+              <span>{{ cat }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Search Bar -->
+    <div class="search-wrap" [class.has-suggestions]="showSuggestions">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input
+        type="text"
+        class="search-input"
+        [(ngModel)]="searchQuery"
+        (input)="onSearchInput()"
+        (keyup.enter)="search()"
+        (blur)="clearSuggestions()"
+        placeholder="Search for products, brands and more..."
+        autocomplete="off"
+      />
+
+      <!-- Suggestions Dropdown -->
+      <div class="search-suggestions" *ngIf="showSuggestions">
+        <div class="suggestion-item" *ngFor="let p of suggestions" (click)="selectSuggestion(p)">
+          <div class="sug-img">
+            <img [src]="p.imageUrl || 'https://placehold.co/40x40/f9f7ff/6c2bd9?text=' + p.name.charAt(0)"
+                 [alt]="p.name"
+                 (error)="$any($event.target).src='https://placehold.co/40x40/f9f7ff/6c2bd9?text=P'" />
+          </div>
+          <div class="sug-info">
+            <p class="sug-name">{{ p.name }}</p>
+            <p class="sug-cat">{{ p.categoryName }}</p>
+          </div>
+          <span class="sug-price">₹{{ (p.price || 0).toLocaleString('en-IN') }}</span>
+        </div>
+        <div class="sug-footer" (click)="search()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          See all results for "<strong>{{ searchQuery }}</strong>"
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Icons -->
+    <div class="nav-right">
+      <!-- Wishlist -->
+      <a routerLink="/wishlist" class="icon-action" *ngIf="isLoggedIn" title="Wishlist">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+        </svg>
+      </a>
+
+      <!-- Notifications -->
+      <div class="notif-wrap" *ngIf="isLoggedIn">
+        <button class="icon-action notif-btn" (click)="toggleNotifications()" title="Notifications">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+          </svg>
+          <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+        </button>
+        <div class="notif-dropdown" *ngIf="showNotifications">
+          <div class="notif-header">
+            <span>Notifications</span>
+            <button class="mark-all-btn" (click)="markAllRead()" *ngIf="unreadCount > 0">Mark all read</button>
+          </div>
+          <div class="notif-empty" *ngIf="notifications.length === 0">No notifications yet</div>
+          <div class="notif-item" *ngFor="let n of notifications" [class.unread]="!n.read" (click)="markRead(n.id)">
+            <div class="notif-dot" *ngIf="!n.read"></div>
+            <div class="notif-content">
+              <p class="notif-title">{{ n.title }}</p>
+              <p class="notif-msg">{{ n.message }}</p>
+              <p class="notif-time">{{ timeAgo(n.createdAt) }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Dropdown or Login -->
+      <div class="user-area" *ngIf="isLoggedIn">
+        <button class="icon-action user-btn" (click)="toggleDropdown()">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu" *ngIf="showDropdown">
+          <div class="dropdown-header">
+            <p class="dropdown-name">{{ username }}</p>
+          </div>
+          <a routerLink="/admin" (click)="showDropdown=false" class="dropdown-item" *ngIf="isAdmin" style="color:#6c2bd9;font-weight:700">⚙️ Admin Panel</a>
+          <div class="dropdown-divider" *ngIf="isAdmin"></div>
+          <a routerLink="/profile" (click)="showDropdown=false" class="dropdown-item">My Profile</a>
+          <a routerLink="/orders" (click)="showDropdown=false" class="dropdown-item">My Orders</a>
+          <a routerLink="/wishlist" (click)="showDropdown=false" class="dropdown-item">Wishlist</a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item logout-item" (click)="logout()">Sign Out</button>
+        </div>
+      </div>
+
+      <div class="auth-links" *ngIf="!isLoggedIn">
+        <a routerLink="/login" class="btn btn-outline" style="padding:7px 18px; font-size:13px;">Login</a>
+        <a routerLink="/register" class="btn btn-primary" style="padding:7px 18px; font-size:13px;">Register</a>
+      </div>
+
+      <!-- Cart -->
+      <a routerLink="/cart" *ngIf="isLoggedIn" class="cart-btn" title="Cart">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.66a2 2 0 001.99-1.78L23 6H6"/>
+        </svg>
+        <span class="cart-count" *ngIf="cartCount > 0">{{ cartCount }}</span>
+      </a>
+    </div>
+
+  </div>
+</header>
+
+<!-- Click outside to close dropdown -->
+<div class="overlay" *ngIf="showDropdown || showCategories || showNotifications" (click)="closeAll()"></div>

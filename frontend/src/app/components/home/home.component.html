@@ -1,0 +1,336 @@
+<!-- ===== HERO ===== -->
+<section class="hero" (mouseenter)="pauseSlider()" (mouseleave)="startSlider()">
+
+  <!-- Full-screen background image -->
+  <img
+    class="hero-bg"
+    [class.fading]="heroFading"
+    [src]="banners[currentSlide].image"
+    [alt]="banners[currentSlide].title"
+  />
+
+  <!-- Left-heavy gradient overlay — text stays readable, right side shows image -->
+  <div class="hero-overlay"></div>
+
+  <!-- Text content — left-aligned inside the full hero width -->
+  <div class="hero-content">
+    <div class="hero-text" style="padding-left: 56px;">
+      <h1>
+        {{ banners[currentSlide].title }}<br>
+        <span class="hero-highlight">{{ banners[currentSlide].highlight }}</span>
+      </h1>
+      <p class="hero-desc">{{ banners[currentSlide].desc }}</p>
+      <a routerLink="/products" class="btn btn-primary hero-cta">
+        Shop Now
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- Decorative plants -->
+  <span class="plant plant-left">🌿</span>
+  <span class="plant plant-right">🌿</span>
+
+  <!-- Arrows -->
+  <button class="slide-arrow slide-prev" (click)="prevSlide()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+  </button>
+  <button class="slide-arrow slide-next" (click)="nextSlide()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  </button>
+
+  <!-- Dots -->
+  <div class="slide-dots">
+    <button
+      *ngFor="let b of banners; let i = index"
+      class="dot"
+      [class.dot-active]="i === currentSlide"
+      (click)="setSlide(i)"
+    ></button>
+  </div>
+
+  <!-- Trust strip -->
+  <div class="trust-strip">
+    <div class="container trust-inner">
+      <div class="trust-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+          <rect x="1" y="3" width="15" height="13" rx="1"/>
+          <path d="M16 8h4l3 3v5h-7V8z"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/>
+          <circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+        <div><strong>Free Shipping</strong><small>On orders above ₹999</small></div>
+      </div>
+      <div class="trust-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <div><strong>Secure Payments</strong><small>100% safe & reliable</small></div>
+      </div>
+      <div class="trust-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+        </svg>
+        <div><strong>Easy Returns</strong><small>Hassle-free process</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CATEGORIES ===== -->
+<section class="categories-section">
+  <div class="container">
+    <div class="categories-row" *ngIf="categories.length > 0">
+      <div
+        class="cat-chip"
+        *ngFor="let cat of categories; let i = index"
+        (click)="goToCategory(cat.name)"
+        [style.background]="getCategoryColor(i)"
+      >
+        <div class="cat-emoji">{{ getCategoryIcon(cat.name) }}</div>
+        <span>{{ cat.name }}</span>
+      </div>
+    </div>
+
+    <!-- Fallback when backend not connected -->
+    <div class="categories-row" *ngIf="categories.length === 0">
+      <div
+        class="cat-chip"
+        *ngFor="let c of ['Mobiles','Laptops','Electronics','Fashion','Home & Living','Beauty & Health','Sports','Toys & Kids','Books & Stationery','Groceries']; let i = index"
+        (click)="goToCategory(c)"
+        [style.background]="getCategoryColor(i)"
+      >
+        <div class="cat-emoji">{{ getCategoryIcon(c) }}</div>
+        <span>{{ c }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURED PRODUCTS ===== -->
+<section class="products-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Featured Products</h2>
+      <a routerLink="/products" class="view-all-link">
+        View All
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="loading" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Loading products...</p>
+    </div>
+
+    <div class="products-grid" *ngIf="!loading">
+      <div
+        class="product-card"
+        *ngFor="let product of featuredProducts; let i = index"
+        [routerLink]="['/products', product.id]"
+      >
+        <div class="product-img-wrap">
+          <span class="best-seller-badge" *ngIf="i === 0">Best Seller</span>
+          <button class="wishlist-icon-btn" (click)="toggleWishlist($event, product)"
+            [class.wishlisted]="wishlistedIds.has(product.id)"
+            [title]="wishlistedIds.has(product.id) ? 'Remove from wishlist' : 'Add to wishlist'">
+            <svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+              [attr.fill]="wishlistedIds.has(product.id) ? 'currentColor' : 'none'">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+            </svg>
+          </button>
+          <div class="wl-toast" *ngIf="wishlistMessages[product.id]">{{ wishlistMessages[product.id] }}</div>
+          <img
+            [src]="product.imageUrl || 'https://placehold.co/220x180/f9f7ff/6c2bd9?text=' + product.name.charAt(0)"
+            [alt]="product.name"
+            (error)="$any($event.target).src='https://placehold.co/220x180/f9f7ff/6c2bd9?text=Product'"
+          />
+        </div>
+
+        <div class="product-body">
+          <p class="product-name" [title]="product.name">{{ product.name }}</p>
+
+          <div class="rating-row">
+            <span class="star-filled" style="font-size:13px">★★★★</span>
+            <span class="star-empty" style="font-size:13px">★</span>
+            <span class="stars-text">4.2</span>
+            <span class="review-count">(1.2k)</span>
+          </div>
+
+          <div class="price-row">
+            <span class="price-now">{{ formatPrice(product.price) }}</span>
+            <span class="price-old">{{ formatPrice(getOriginalPrice(product.price)) }}</span>
+            <span class="off-badge">{{ getDiscountPct(product.price) }}% OFF</span>
+          </div>
+
+          <button class="add-to-cart-btn" (click)="addToCart($event, product)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.66a2 2 0 001.99-1.78L23 6H6"/>
+            </svg>
+            <span *ngIf="!cartMessages[product.id]">Add to Cart</span>
+            <span *ngIf="cartMessages[product.id]" style="color:var(--accent-green)">{{ cartMessages[product.id] }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="no-products" *ngIf="featuredProducts.length === 0">
+        <div class="no-products-icon">🛍️</div>
+        <h3>No Products Yet</h3>
+        <p>Make sure the backend is running on port 8099</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== RECOMMENDED FOR YOU ===== -->
+<section class="products-section recommended-section" *ngIf="recommendedProducts.length > 0">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2>Recommended for You</h2>
+        <p class="section-sub">Based on products you've been exploring</p>
+      </div>
+      <a routerLink="/products" class="view-all-btn">Browse All</a>
+    </div>
+    <div class="products-grid">
+      <div class="product-card"
+        *ngFor="let product of recommendedProducts; let i = index"
+        [routerLink]="['/products', product.id]">
+        <div class="product-img-wrap">
+          <span class="best-seller-badge" *ngIf="i === 0">Top Pick</span>
+          <button class="wishlist-icon-btn" (click)="toggleWishlist($event, product)"
+            [class.wishlisted]="wishlistedIds.has(product.id)"
+            [title]="wishlistedIds.has(product.id) ? 'Remove from wishlist' : 'Add to wishlist'">
+            <svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+              [attr.fill]="wishlistedIds.has(product.id) ? 'currentColor' : 'none'">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+            </svg>
+          </button>
+          <div class="wl-toast" *ngIf="wishlistMessages[product.id]">{{ wishlistMessages[product.id] }}</div>
+          <img [src]="product.imageUrl || 'https://placehold.co/220x180/f9f7ff/6c2bd9?text=' + product.name.charAt(0)"
+               [alt]="product.name"
+               (error)="$any($event.target).src='https://placehold.co/220x180/f9f7ff/6c2bd9?text=Product'" />
+        </div>
+        <div class="product-body">
+          <p class="product-name" [title]="product.name">{{ product.name }}</p>
+
+          <div class="rating-row">
+            <span class="star-filled" style="font-size:13px">★★★★</span>
+            <span class="star-empty" style="font-size:13px">★</span>
+            <span class="stars-text">4.2</span>
+            <span class="review-count">(1.2k)</span>
+          </div>
+
+          <div class="price-row">
+            <span class="price-now">{{ formatPrice(product.price) }}</span>
+            <span class="price-old">{{ formatPrice(getOriginalPrice(product.price)) }}</span>
+            <span class="off-badge">{{ getDiscountPct(product.price) }}% OFF</span>
+          </div>
+
+          <button class="add-to-cart-btn" (click)="addToCart($event, product)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.66a2 2 0 001.99-1.78L23 6H6"/>
+            </svg>
+            <span *ngIf="!cartMessages[product.id]">Add to Cart</span>
+            <span *ngIf="cartMessages[product.id]" style="color:var(--accent-green)">{{ cartMessages[product.id] }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROMO BANNER ===== -->
+<section class="promo-section">
+  <div class="container">
+    <div class="promo-grid">
+      <div class="promo-card promo-purple" routerLink="/products">
+        <div class="promo-text">
+          <span class="promo-tag">Limited Offer</span>
+          <h3>Electronics & Gadgets</h3>
+          <p>Up to 40% off on top brands</p>
+          <span class="promo-link">Shop Now →</span>
+        </div>
+        <div class="promo-icon">🎧</div>
+      </div>
+      <div class="promo-card promo-pink" routerLink="/products">
+        <div class="promo-text">
+          <span class="promo-tag">Trending</span>
+          <h3>Fashion & Clothing</h3>
+          <p>New arrivals every week</p>
+          <span class="promo-link">Explore →</span>
+        </div>
+        <div class="promo-icon">👗</div>
+      </div>
+      <div class="promo-card promo-blue" routerLink="/products">
+        <div class="promo-text">
+          <span class="promo-tag">Best Sellers</span>
+          <h3>Sports & Fitness</h3>
+          <p>Gear up for your goals</p>
+          <span class="promo-link">View All →</span>
+        </div>
+        <div class="promo-icon">🏃</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-icon-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+          </div>
+          <span>ShopEase</span>
+        </div>
+        <p>Your one-stop destination for the best products across all categories. Quality, trust and great prices — always.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a routerLink="/">Home</a></li>
+          <li><a routerLink="/products">Shop</a></li>
+          <li><a routerLink="/orders">My Orders</a></li>
+          <li><a routerLink="/wishlist">Wishlist</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Account</h4>
+        <ul>
+          <li><a routerLink="/login">Login</a></li>
+          <li><a routerLink="/register">Register</a></li>
+          <li><a routerLink="/profile">My Profile</a></li>
+          <li><a routerLink="/cart">Cart</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact Us</h4>
+        <p style="margin-bottom:8px">support&#64;shopease.com</p>
+        <p style="margin-bottom:8px">+91 98765 43210</p>
+        <p>Mon – Sat, 9AM – 6PM</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 ShopEase. All rights reserved.</p>
+      <p>Made for college project — EShoppingZone</p>
+    </div>
+  </div>
+</footer>

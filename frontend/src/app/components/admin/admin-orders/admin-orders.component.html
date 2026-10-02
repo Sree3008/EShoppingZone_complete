@@ -1,0 +1,39 @@
+<div class="page-wrapper">
+  <h1 class="page-title">Order Management</h1>
+
+  <div *ngIf="successMsg" class="success-banner">{{ successMsg }}</div>
+  <div *ngIf="errorMsg" class="error-banner">{{ errorMsg }}</div>
+
+  <div *ngIf="loading" class="loading-state"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading" class="card table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Status</th>
+          <th>Total (₹)</th>
+          <th>Date</th>
+          <th>Update Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders">
+          <td>#{{ order.id }}</td>
+          <td><span class="badge" [ngClass]="statusBadgeClass(order.status)">{{ order.status }}</span></td>
+          <td>₹{{ order.totalAmount | number:'1.2-2' }}</td>
+          <td>{{ order.createdAt | date:'dd MMM yyyy' }}</td>
+          <td class="update-cell">
+            <select [(ngModel)]="selectedStatus[order.id]">
+              <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+            </select>
+            <button class="btn btn-update" (click)="updateStatus(order)">Update</button>
+          </td>
+        </tr>
+        <tr *ngIf="orders.length === 0">
+          <td colspan="5" class="empty-row">No orders found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

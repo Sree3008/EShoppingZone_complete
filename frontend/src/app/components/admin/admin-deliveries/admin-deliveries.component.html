@@ -1,0 +1,70 @@
+<div class="page-wrapper">
+  <h1 class="page-title">Delivery Management</h1>
+
+  <div *ngIf="successMsg" class="success-banner">{{ successMsg }}</div>
+  <div *ngIf="errorMsg" class="error-banner">{{ errorMsg }}</div>
+
+  <!-- Assign Delivery Form -->
+  <div class="card">
+    <h2 class="section-title">Assign Delivery</h2>
+    <div class="assign-form">
+      <input
+        type="number"
+        [(ngModel)]="assignForm.orderId"
+        placeholder="Order ID"
+        class="text-input"
+      />
+      <input
+        type="number"
+        [(ngModel)]="assignForm.agentUserId"
+        placeholder="Agent User ID"
+        class="text-input"
+      />
+      <button class="btn btn-approve" (click)="assignDelivery()" [disabled]="submitting">
+        {{ submitting ? 'Assigning…' : 'Assign' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="card filter-row">
+    <label>Status:</label>
+    <select [(ngModel)]="filterStatus" (change)="loadDeliveries()">
+      <option value="">All</option>
+      <option value="PENDING">Pending</option>
+      <option value="ASSIGNED">Assigned</option>
+      <option value="IN_TRANSIT">In Transit</option>
+      <option value="OUT_FOR_DELIVERY">Out for Delivery</option>
+      <option value="DELIVERED">Delivered</option>
+      <option value="FAILED">Failed</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="loading-state"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading" class="card table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Order ID</th>
+          <th>Agent</th>
+          <th>Status</th>
+          <th>ETA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of deliveries">
+          <td>#{{ d.id }}</td>
+          <td>#{{ d.orderId }}</td>
+          <td>{{ d.agentName || d.agentUserId || 'N/A' }}</td>
+          <td><span class="badge" [ngClass]="statusBadgeClass(d.status)">{{ d.status }}</span></td>
+          <td>{{ d.eta ? (d.eta | date:'dd MMM yyyy') : 'N/A' }}</td>
+        </tr>
+        <tr *ngIf="deliveries.length === 0">
+          <td colspan="5" class="empty-row">No deliveries found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

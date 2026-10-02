@@ -1,0 +1,115 @@
+<div class="page-content">
+  <div class="container">
+
+    <div class="loading" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Loading your cart...</p>
+    </div>
+
+    <!-- Empty Cart -->
+    <div class="empty-state" *ngIf="!loading && isCartEmpty()">
+      <div class="empty-icon">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 001.99 1.61h9.66a2 2 0 001.99-1.78L23 6H6"/>
+        </svg>
+      </div>
+      <h2>Your cart is empty</h2>
+      <p>Looks like you haven't added anything yet. Start exploring!</p>
+      <a routerLink="/products" class="btn btn-primary" style="margin-top:20px; padding: 12px 28px;">
+        Start Shopping
+      </a>
+    </div>
+
+    <!-- Cart Layout -->
+    <div class="cart-layout" *ngIf="!loading && !isCartEmpty()">
+
+      <!-- Items -->
+      <div class="cart-main">
+        <div class="cart-header">
+          <h2>Shopping Cart <span>({{ cart?.items?.length }} items)</span></h2>
+          <button class="clear-all-btn" (click)="clearCart()">Clear All</button>
+        </div>
+
+        <div class="cart-items-list">
+          <div class="cart-item card" *ngFor="let item of cart?.items">
+            <div class="item-img">
+              <img
+                [src]="item.productImage || 'https://placehold.co/90x90/f9f7ff/6c2bd9?text=P'"
+                [alt]="item.productName"
+                (error)="$any($event.target).src='https://placehold.co/90x90/f9f7ff/6c2bd9?text=P'"
+              />
+            </div>
+            <div class="item-body">
+              <p class="item-name">{{ item.productName }}</p>
+              <p class="item-unit-price">{{ formatPrice(item.unitPrice) }} each</p>
+            </div>
+            <div class="qty-ctrl">
+              <button (click)="updateQuantity(item, -1)">−</button>
+              <span>{{ item.quantity }}</span>
+              <button (click)="updateQuantity(item, 1)">+</button>
+            </div>
+            <div class="item-subtotal">{{ formatPrice(item.subtotal || item.unitPrice * item.quantity) }}</div>
+            <button class="remove-item-btn" (click)="removeItem(item)" title="Remove">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <a routerLink="/products" class="continue-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Continue Shopping
+        </a>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="cart-summary">
+        <div class="summary-card card">
+          <h3>Order Summary</h3>
+
+          <div class="summary-row">
+            <span>Subtotal ({{ cart?.items?.length }} items)</span>
+            <span>{{ formatPrice(getTotal()) }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span class="free-tag" *ngIf="getTotal() >= 999">FREE</span>
+            <span *ngIf="getTotal() < 999">₹99</span>
+          </div>
+          <div class="summary-row">
+            <span>Tax (GST)</span>
+            <span>Included</span>
+          </div>
+
+          <div class="summary-divider"></div>
+
+          <div class="summary-total">
+            <strong>Total</strong>
+            <strong class="total-amount">{{ formatPrice(getTotal() >= 999 ? getTotal() : getTotal() + 99) }}</strong>
+          </div>
+
+          <div class="free-ship-bar" *ngIf="getTotal() < 999">
+            <p>Add <strong>{{ formatPrice(999 - getTotal()) }}</strong> more for free shipping!</p>
+            <div class="ship-progress">
+              <div class="ship-fill" [style.width]="(getTotal() / 999 * 100) + '%'"></div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary checkout-cta" (click)="goToCheckout()">
+            Proceed to Checkout
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+
+          <div class="secure-note">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Secure & encrypted checkout
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

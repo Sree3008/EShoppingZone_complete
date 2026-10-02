@@ -1,0 +1,142 @@
+<div class="page-content">
+  <div class="container">
+
+    <!-- Order Success -->
+    <div class="success-screen card" *ngIf="orderPlaced">
+      <div class="success-icon">🎉</div>
+      <h2>Order Placed Successfully!</h2>
+      <p>Your order #{{ orderId }} has been confirmed. We'll keep you updated!</p>
+      <div class="success-actions">
+        <a [routerLink]="['/orders', orderId]" class="btn btn-primary">Track Order</a>
+        <a routerLink="/products" class="btn btn-outline">Continue Shopping</a>
+      </div>
+    </div>
+
+    <!-- Checkout Flow -->
+    <div *ngIf="!orderPlaced">
+      <h2 class="page-title">Checkout</h2>
+
+      <div class="checkout-layout">
+        <div class="checkout-left">
+
+          <!-- Address Selection -->
+          <div class="section card">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              Delivery Address
+            </h3>
+
+            <div class="loading" *ngIf="addressLoading" style="padding:20px">
+              <div class="spinner"></div>
+            </div>
+
+            <div class="address-list" *ngIf="!addressLoading">
+              <div
+                class="address-item"
+                *ngFor="let addr of addresses"
+                [class.selected]="selectedAddressId === addr.id"
+                (click)="selectedAddressId = addr.id"
+              >
+                <input type="radio" [value]="addr.id" [(ngModel)]="selectedAddressId" name="address" />
+                <div class="address-text">
+                  <p>{{ addr.street }}, {{ addr.city }}</p>
+                  <p>{{ addr.state }} {{ addr.postalCode }}</p>
+                  <p>{{ addr.country }}</p>
+                  <span class="badge badge-success" *ngIf="addr.isDefault" style="font-size:10px">Default</span>
+                </div>
+              </div>
+
+              <p class="no-address" *ngIf="addresses.length === 0">No saved addresses. Add one below.</p>
+
+              <button class="btn btn-outline add-addr-btn" (click)="showAddressForm = !showAddressForm">
+                {{ showAddressForm ? '− Cancel' : '+ Add New Address' }}
+              </button>
+
+              <div class="add-address-form" *ngIf="showAddressForm">
+                <div class="form-group">
+                  <label>Street Address</label>
+                  <input type="text" [(ngModel)]="newAddress.street" placeholder="House no., Street, Area" />
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>City</label><input type="text" [(ngModel)]="newAddress.city" placeholder="City" /></div>
+                  <div class="form-group"><label>State</label><input type="text" [(ngModel)]="newAddress.state" placeholder="State" /></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>PIN Code</label><input type="text" [(ngModel)]="newAddress.postalCode" placeholder="6-digit PIN" /></div>
+                  <div class="form-group"><label>Country</label><input type="text" [(ngModel)]="newAddress.country" /></div>
+                </div>
+                <button class="btn btn-primary" (click)="saveAddress()">Save Address</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="section card">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                <line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+              Payment Method
+            </h3>
+
+            <div class="payment-options">
+              <label class="payment-option" [class.selected]="paymentMethod === 'COD'">
+                <input type="radio" value="COD" [(ngModel)]="paymentMethod" name="payment" />
+                <div class="pay-icon">🚚</div>
+                <div>
+                  <strong>Cash on Delivery</strong>
+                  <p>Pay when your order arrives</p>
+                </div>
+              </label>
+
+              <label class="payment-option" [class.selected]="paymentMethod === 'WALLET'">
+                <input type="radio" value="WALLET" [(ngModel)]="paymentMethod" name="payment" />
+                <div class="pay-icon">👛</div>
+                <div>
+                  <strong>ShopEase Wallet</strong>
+                  <p>Balance: {{ formatPrice(walletBalance) }}</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="checkout-right">
+          <div class="summary-card card">
+            <h3>Order Summary</h3>
+
+            <div class="alert alert-error" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+            <div class="summary-line">
+              <span>Delivery Address</span>
+              <span style="color: var(--accent-green); font-weight:600" *ngIf="selectedAddressId">✓ Selected</span>
+              <span style="color: var(--danger)" *ngIf="!selectedAddressId">Not selected</span>
+            </div>
+            <div class="summary-line">
+              <span>Payment</span>
+              <span>{{ paymentMethod === 'COD' ? 'Cash on Delivery' : 'Wallet' }}</span>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <button
+              class="btn btn-primary place-btn"
+              (click)="placeOrder()"
+              [disabled]="loading || !selectedAddressId"
+            >
+              <span *ngIf="loading" style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top:2px solid #fff;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:6px"></span>
+              {{ loading ? 'Placing Order...' : 'Place Order' }}
+            </button>
+
+            <a routerLink="/cart" class="back-to-cart">← Back to Cart</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

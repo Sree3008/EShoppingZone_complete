@@ -1,0 +1,105 @@
+<div class="page-wrapper">
+  <h1 class="page-title">Product Management</h1>
+
+  <div *ngIf="successMsg" class="success-banner">{{ successMsg }}</div>
+  <div *ngIf="errorMsg" class="error-banner">{{ errorMsg }}</div>
+
+  <!-- Tabs -->
+  <div class="tab-row">
+    <button class="tab-btn" [class.active]="activeTab === 'pending'" (click)="activeTab = 'pending'">
+      Pending Approval
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="activeTab = 'all'">
+      All Products
+    </button>
+  </div>
+
+  <!-- Pending Tab -->
+  <div *ngIf="activeTab === 'pending'" class="card table-card">
+    <div *ngIf="loadingPending" class="loading-state"><div class="spinner"></div></div>
+    <table *ngIf="!loadingPending">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Product Name</th>
+          <th>Price (₹)</th>
+          <th>Seller</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pendingProducts">
+          <td>{{ p.id }}</td>
+          <td>{{ p.name }}</td>
+          <td>₹{{ p.price | number:'1.2-2' }}</td>
+          <td>{{ p.sellerName || p.sellerId || 'N/A' }}</td>
+          <td class="action-cell">
+            <button class="btn btn-approve" (click)="approveProduct(p.id)">Approve</button>
+            <button class="btn btn-reject"  (click)="rejectProduct(p.id)">Reject</button>
+          </td>
+        </tr>
+        <tr *ngIf="pendingProducts.length === 0">
+          <td colspan="5" class="empty-row">No pending products.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- All Products Tab -->
+  <div *ngIf="activeTab === 'all'" class="card table-card">
+    <div *ngIf="loadingAll" class="loading-state"><div class="spinner"></div></div>
+    <table *ngIf="!loadingAll">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Product Name</th>
+          <th>Status</th>
+          <th>Price (₹)</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of allProducts">
+          <td>{{ p.id }}</td>
+          <td>{{ p.name }}</td>
+          <td><span class="badge" [ngClass]="statusBadgeClass(p.status)">{{ p.status }}</span></td>
+          <td>₹{{ p.price | number:'1.2-2' }}</td>
+          <td>
+            <button
+              *ngIf="p.status === 'ACTIVE'"
+              class="btn btn-update"
+              (click)="deactivateProduct(p.id)"
+            >Deactivate</button>
+          </td>
+        </tr>
+        <tr *ngIf="allProducts.length === 0">
+          <td colspan="5" class="empty-row">No products found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Categories -->
+  <div class="card">
+    <h2 class="section-title">Categories</h2>
+    <div *ngIf="loadingCats" class="loading-state"><div class="spinner"></div></div>
+    <div *ngIf="!loadingCats">
+      <div class="categories-list">
+        <span class="category-chip" *ngFor="let cat of categories">{{ cat.name }}</span>
+        <span *ngIf="categories.length === 0" class="empty-text">No categories found.</span>
+      </div>
+      <div class="add-category-form">
+        <input
+          type="text"
+          [(ngModel)]="newCategoryName"
+          placeholder="New category name"
+          class="text-input"
+          (keyup.enter)="addCategory()"
+        />
+        <button class="btn btn-approve" (click)="addCategory()" [disabled]="submittingCategory">
+          {{ submittingCategory ? 'Saving…' : 'Add Category' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

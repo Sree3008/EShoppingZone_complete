@@ -1,0 +1,156 @@
+.returns-page {
+  background: var(--bg);
+  min-height: 100vh;
+  padding: 32px 0 60px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-decoration: none;
+}
+.back-link:hover { text-decoration: underline; }
+
+.page-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin-bottom: 24px;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e8e8f0;
+}
+.empty-icon {
+  margin: 0 auto 20px;
+  width: 80px;
+  height: 80px;
+  background: #f9fafb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.empty-state h3 { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+.empty-state p { font-size: 14px; color: #6b7280; }
+
+.returns-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.return-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e8e8f0;
+  overflow: hidden;
+}
+
+.return-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.return-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.return-id {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.order-ref {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.status-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 50px;
+  border: 1px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.return-body {
+  padding: 16px 20px;
+}
+
+.return-reason {
+  margin-bottom: 16px;
+}
+
+.return-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail-label {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.refund-ref {
+  font-family: monospace;
+  font-size: 13px;
+  color: #6c2bd9;
+}
+
+.refund-amount {
+  color: #16a34a;
+}
+
+.return-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+
+.btn-sm {
+  padding: 7px 16px;
+  font-size: 13px;
+}

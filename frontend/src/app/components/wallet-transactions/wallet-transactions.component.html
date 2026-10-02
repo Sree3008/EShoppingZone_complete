@@ -1,0 +1,85 @@
+<div class="wallet-page">
+  <div class="container">
+
+    <a routerLink="/profile" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Profile
+    </a>
+
+    <h2 class="page-title">Wallet Transactions</h2>
+
+    <div class="loading" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Loading transactions...</p>
+    </div>
+
+    <div *ngIf="!loading">
+      <!-- Summary Cards -->
+      <div class="summary-row" *ngIf="transactions.length > 0">
+        <div class="summary-card credit-card">
+          <div class="summary-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+          <div>
+            <p class="summary-label">Total Credits</p>
+            <p class="summary-amount">{{ formatPrice(totalCredits) }}</p>
+          </div>
+        </div>
+        <div class="summary-card debit-card">
+          <div class="summary-icon debit-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+          </div>
+          <div>
+            <p class="summary-label">Total Debits</p>
+            <p class="summary-amount debit-amount">{{ formatPrice(totalDebits) }}</p>
+          </div>
+        </div>
+        <div class="summary-card balance-card">
+          <div class="summary-icon balance-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          </div>
+          <div>
+            <p class="summary-label">Net Balance</p>
+            <p class="summary-amount">{{ formatPrice(totalCredits - totalDebits) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="transactions.length === 0">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5">
+            <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+          </svg>
+        </div>
+        <h3>No transactions yet</h3>
+        <p>Your wallet transactions will appear here.</p>
+        <a routerLink="/profile" class="btn btn-primary" style="margin-top:16px">Back to Profile</a>
+      </div>
+
+      <!-- Transactions List -->
+      <div class="transactions-list" *ngIf="transactions.length > 0">
+        <div class="txn-card" *ngFor="let t of transactions">
+          <div class="txn-left">
+            <div class="txn-icon" [class.credit-icon]="isCredit(t.type)" [class.debit-icon-box]="!isCredit(t.type)">
+              <svg *ngIf="isCredit(t.type)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+              <svg *ngIf="!isCredit(t.type)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            </div>
+            <div class="txn-info">
+              <p class="txn-description">{{ t.description || t.type }}</p>
+              <p class="txn-date">{{ t.createdAt | date:'d MMM y, h:mm a' }}</p>
+            </div>
+          </div>
+          <div class="txn-right">
+            <span class="txn-type-chip" [class.credit-chip]="isCredit(t.type)" [class.debit-chip]="!isCredit(t.type)">
+              {{ t.type }}
+            </span>
+            <span class="txn-amount" [class.credit-amount]="isCredit(t.type)" [class.debit-amount]="!isCredit(t.type)">
+              {{ isCredit(t.type) ? '+' : '-' }}{{ formatPrice(t.amount) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

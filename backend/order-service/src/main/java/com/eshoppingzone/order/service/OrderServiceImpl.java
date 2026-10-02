@@ -463,9 +463,9 @@ public class OrderServiceImpl implements OrderService {
             case PENDING_PAYMENT -> target == OrderStatus.CONFIRMED || target == OrderStatus.CANCELLED || target == OrderStatus.FAILED;
             case CONFIRMED -> target == OrderStatus.PROCESSING || target == OrderStatus.READY_FOR_DELIVERY || target == OrderStatus.ASSIGNED || target == OrderStatus.OUT_FOR_DELIVERY || target == OrderStatus.CANCELLED || target == OrderStatus.FAILED;
             case PROCESSING -> target == OrderStatus.READY_FOR_DELIVERY || target == OrderStatus.ASSIGNED || target == OrderStatus.OUT_FOR_DELIVERY || target == OrderStatus.CANCELLED || target == OrderStatus.FAILED;
-            case READY_FOR_DELIVERY -> target == OrderStatus.ASSIGNED || target == OrderStatus.OUT_FOR_DELIVERY || target == OrderStatus.CANCELLED || target == OrderStatus.FAILED;
-            case ASSIGNED -> target == OrderStatus.OUT_FOR_DELIVERY || target == OrderStatus.CANCELLED || target == OrderStatus.FAILED;
-            case OUT_FOR_DELIVERY -> target == OrderStatus.DELIVERED || target == OrderStatus.FAILED || target == OrderStatus.CANCELLED;
+            case READY_FOR_DELIVERY -> target == OrderStatus.ASSIGNED || target == OrderStatus.OUT_FOR_DELIVERY || target == OrderStatus.FAILED;
+            case ASSIGNED -> target == OrderStatus.OUT_FOR_DELIVERY || target == OrderStatus.FAILED;
+            case OUT_FOR_DELIVERY -> target == OrderStatus.DELIVERED || target == OrderStatus.FAILED;
             case DELIVERED -> target == OrderStatus.RETURN_REQUESTED || target == OrderStatus.REFUNDED;
             case RETURN_REQUESTED -> target == OrderStatus.RETURNED || target == OrderStatus.REFUNDED;
             case RETURNED -> target == OrderStatus.REFUNDED;
@@ -676,6 +676,20 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order saved = orderRepository.save(order);
+
+        // When order is shipped (OUT_FOR_DELIVERY), confirm inventory: reserved stock → consumed
+        if (status == OrderStatus.OUT_FOR_DELIVERY) {
+            List<StockReservationItem> items = order.getItems().stream()
+                    .map(i -> new StockReservationItem(i.getProductId(), i.getQuantity()))
+                    .collect(Collectors.toList());
+            try {
+                inventoryClient.confirmStock(new StockReservationRequest(order.getOrderNumber(), items));
+                log.info("Confirmed stock for shipped order {}", order.getOrderNumber());
+            } catch (Exception e) {
+                log.warn("Failed to confirm stock for order {}: {}", order.getOrderNumber(), e.getMessage());
+            }
+        }
+
         auditLog("ORDER_STATUS_CHANGED", "ORDER", String.valueOf(orderId), "SUCCESS", null,
                 safeMeta(
                         "orderNumber", order.getOrderNumber(),
@@ -714,6 +728,20 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order saved = orderRepository.save(order);
+
+        // When order is shipped (OUT_FOR_DELIVERY), confirm inventory: reserved stock → consumed
+        if (status == OrderStatus.OUT_FOR_DELIVERY) {
+            List<StockReservationItem> items = order.getItems().stream()
+                    .map(i -> new StockReservationItem(i.getProductId(), i.getQuantity()))
+                    .collect(Collectors.toList());
+            try {
+                inventoryClient.confirmStock(new StockReservationRequest(order.getOrderNumber(), items));
+                log.info("Confirmed stock for shipped order {}", order.getOrderNumber());
+            } catch (Exception e) {
+                log.warn("Failed to confirm stock for order {}: {}", order.getOrderNumber(), e.getMessage());
+            }
+        }
+
         auditLog("ORDER_STATUS_CHANGED", "ORDER", String.valueOf(orderId), "SUCCESS", null,
                 safeMeta(
                         "orderNumber", order.getOrderNumber(),

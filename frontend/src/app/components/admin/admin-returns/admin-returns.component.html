@@ -1,0 +1,84 @@
+<div class="page-wrapper">
+  <h1 class="page-title">Return Management</h1>
+
+  <div *ngIf="successMsg" class="success-banner">{{ successMsg }}</div>
+  <div *ngIf="errorMsg" class="error-banner">{{ errorMsg }}</div>
+
+  <!-- Filter -->
+  <div class="card filter-row">
+    <label>Status:</label>
+    <select [(ngModel)]="filterStatus" (change)="loadReturns()">
+      <option value="">All</option>
+      <option value="PENDING">Pending</option>
+      <option value="APPROVED">Approved</option>
+      <option value="REJECTED">Rejected</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="loading-state"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading" class="card table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Return ID</th>
+          <th>Order ID</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let ret of returns">
+          <tr>
+            <td>#{{ ret.id }}</td>
+            <td>#{{ ret.orderId }}</td>
+            <td>{{ ret.reason }}</td>
+            <td><span class="badge" [ngClass]="statusBadgeClass(ret.status)">{{ ret.status }}</span></td>
+            <td>{{ ret.createdAt | date:'dd MMM yyyy' }}</td>
+            <td class="action-cell">
+              <button
+                *ngIf="ret.status === 'PENDING'"
+                class="btn btn-approve"
+                (click)="approve(ret.id)"
+              >Approve</button>
+              <button
+                *ngIf="ret.status === 'PENDING' && !showRejectFormMap[ret.id]"
+                class="btn btn-reject"
+                (click)="showRejectForm(ret.id)"
+              >Reject</button>
+              <button
+                *ngIf="ret.status === 'APPROVED'"
+                class="btn btn-update"
+                (click)="retryRestock(ret.id)"
+              >Retry Restock</button>
+              <button
+                *ngIf="ret.status === 'APPROVED'"
+                class="btn btn-update"
+                (click)="retryRefund(ret.id)"
+              >Retry Refund</button>
+            </td>
+          </tr>
+          <tr *ngIf="showRejectFormMap[ret.id]">
+            <td colspan="6">
+              <div class="inline-form">
+                <textarea
+                  [(ngModel)]="rejectReasonMap[ret.id]"
+                  placeholder="Enter rejection reason…"
+                  rows="2"
+                  class="reason-textarea"
+                ></textarea>
+                <button class="btn btn-reject" (click)="confirmReject(ret.id)">Confirm Reject</button>
+                <button class="btn btn-update" (click)="showRejectFormMap[ret.id] = false">Cancel</button>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+        <tr *ngIf="returns.length === 0">
+          <td colspan="6" class="empty-row">No returns found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

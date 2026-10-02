@@ -1,0 +1,208 @@
+<div class="order-detail-page">
+  <div class="container">
+
+    <a routerLink="/orders" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to My Orders
+    </a>
+
+    <div class="loading" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Loading order details...</p>
+    </div>
+
+    <div *ngIf="!loading && order">
+
+      <!-- Order Header -->
+      <div class="detail-header">
+        <div class="header-left">
+          <h1>{{ orderNumber }}</h1>
+          <p class="placed-on">Placed on {{ order.createdAt | date:'EEEE, d MMMM y' }}</p>
+        </div>
+        <div class="header-right">
+          <span class="status-pill"
+            [style.background]="getStatusColor(order.status) + '18'"
+            [style.color]="getStatusColor(order.status)"
+            [style.border-color]="getStatusColor(order.status) + '40'">
+            {{ getStatusLabel(order.status) }}
+          </span>
+          <button class="btn btn-danger cancel-btn" *ngIf="canCancel()" (click)="cancelOrder()" [disabled]="cancelLoading">
+            {{ cancelLoading ? 'Cancelling...' : 'Cancel Order' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="alert alert-success" *ngIf="cancelMsg && cancelMsg.includes('successfully')">{{ cancelMsg }}</div>
+      <div class="alert alert-error" *ngIf="cancelMsg && !cancelMsg.includes('successfully')">{{ cancelMsg }}</div>
+
+      <!-- Tracking Timeline -->
+      <div class="timeline-card" *ngIf="!isCancelled()">
+        <h3 class="section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Order Tracking
+        </h3>
+        <div class="timeline-steps">
+          <div class="tl-step" *ngFor="let step of STEPS; let i = index; let last = last"
+               [class.done]="isStepDone(step)"
+               [class.active]="orderStatus === step">
+            <div class="tl-node">
+              <div class="tl-circle">
+                <svg *ngIf="isStepDone(step)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="tl-connector" *ngIf="!last" [class.filled]="isStepDone(step) && isStepDone(STEPS[i+1])"></div>
+            </div>
+            <div class="tl-info">
+              <p class="tl-label">{{ STEP_LABELS[step] }}</p>
+              <p class="tl-sub" *ngIf="orderStatus === step">In Progress</p>
+              <p class="tl-sub" *ngIf="isStepDone(step) && orderStatus !== step">Completed</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Info -->
+      <div class="delivery-card" *ngIf="delivery">
+        <h3 class="section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          Delivery Info
+        </h3>
+        <div class="delivery-grid">
+          <div class="del-item" *ngIf="delivery.agentName"><span class="del-label">Agent</span><span class="del-val">{{ delivery.agentName }}</span></div>
+          <div class="del-item" *ngIf="delivery.agentPhone"><span class="del-label">Phone</span><span class="del-val">{{ delivery.agentPhone }}</span></div>
+          <div class="del-item"><span class="del-label">Status</span><span class="del-val del-status">{{ delivery.status?.replace('_',' ') }}</span></div>
+          <div class="del-item" *ngIf="delivery.estimatedDelivery"><span class="del-label">ETA</span><span class="del-val">{{ delivery.estimatedDelivery | date:'d MMM y' }}</span></div>
+        </div>
+        <p class="del-notes" *ngIf="delivery.trackingNotes">{{ delivery.trackingNotes }}</p>
+      </div>
+
+      <!-- Return Request -->
+      <div class="return-section" *ngIf="canReturn()">
+        <div *ngIf="!showReturnForm && !returnMsg">
+          <button class="btn btn-outline return-btn" (click)="showReturnForm=true">Request Return / Refund</button>
+        </div>
+        <div class="return-form" *ngIf="showReturnForm">
+          <h4>Return Reason</h4>
+          <textarea class="return-textarea" [(ngModel)]="returnReason" placeholder="Describe why you want to return this item..." rows="3"></textarea>
+          <div class="return-actions">
+            <button class="btn btn-danger" (click)="submitReturn()" [disabled]="returnLoading || !returnReason.trim()">{{ returnLoading ? 'Submitting...' : 'Submit Return' }}</button>
+            <button class="btn btn-outline" (click)="showReturnForm=false">Cancel</button>
+          </div>
+        </div>
+        <div class="alert alert-success" *ngIf="returnMsg && returnMsg.includes('successfully')">{{ returnMsg }}</div>
+        <div class="alert alert-error" *ngIf="returnMsg && !returnMsg.includes('successfully')">{{ returnMsg }}</div>
+      </div>
+
+      <!-- Cancelled Banner -->
+      <div class="cancelled-card" *ngIf="isCancelled()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <div>
+          <p class="cancelled-title">Order {{ getStatusLabel(order.status) }}</p>
+          <p class="cancelled-sub">This order has been {{ order.status === 'CANCELLED' ? 'cancelled' : 'returned' }}.</p>
+        </div>
+      </div>
+
+      <!-- Main Layout -->
+      <div class="detail-layout">
+
+        <!-- Left: Items + Address -->
+        <div class="detail-main">
+
+          <!-- Order Items -->
+          <div class="detail-card">
+            <h3 class="section-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+              Order Items
+            </h3>
+            <div class="items-list">
+              <div class="detail-item" *ngFor="let item of order.items">
+                <div class="item-img">
+                  <img [src]="'https://placehold.co/72x72/f9f7ff/6c2bd9?text=' + item.productName.charAt(0)"
+                       [alt]="item.productName"
+                       (error)="$any($event.target).src='https://placehold.co/72x72/f9f7ff/6c2bd9?text=P'" />
+                </div>
+                <div class="item-body">
+                  <p class="item-name">{{ item.productName }}</p>
+                  <p class="item-price-row">{{ formatPrice(item.unitPrice || 0) }} × {{ item.quantity }}</p>
+                </div>
+                <div class="item-line-total">{{ formatPrice(item.lineTotal || (item.unitPrice * item.quantity) || 0) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Delivery Address -->
+          <div class="detail-card">
+            <h3 class="section-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Delivery Address
+            </h3>
+            <div class="address-block">
+              <p class="addr-line">{{ order.shippingStreet }}</p>
+              <p class="addr-line">{{ order.shippingCity }}, {{ order.shippingState }}</p>
+              <p class="addr-line">{{ order.shippingPostalCode }}, {{ order.shippingCountry }}</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Summary -->
+        <div class="detail-side">
+          <div class="detail-card summary-card">
+            <h3 class="section-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              Payment Summary
+            </h3>
+
+            <div class="summary-rows">
+              <div class="sum-row">
+                <span>Subtotal</span>
+                <span>{{ formatPrice(orderTotal) }}</span>
+              </div>
+              <div class="sum-row">
+                <span>Shipping</span>
+                <span class="free-tag">FREE</span>
+              </div>
+              <div class="sum-row">
+                <span>Tax (GST)</span>
+                <span>Included</span>
+              </div>
+            </div>
+
+            <div class="sum-divider"></div>
+
+            <div class="sum-total">
+              <strong>Total Paid</strong>
+              <strong class="total-amount">{{ formatPrice(orderTotal) }}</strong>
+            </div>
+
+            <div class="payment-method-row">
+              <span class="pm-label">Payment Method</span>
+              <span class="pm-value">{{ order.paymentMethod }}</span>
+            </div>
+
+            <div class="payment-method-row">
+              <span class="pm-label">Payment Status</span>
+              <span class="pm-value pm-status" [class.paid]="paymentStatus === 'PAID'">
+                {{ paymentStatus }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Need help card -->
+          <div class="detail-card help-card">
+            <h4>Need Help?</h4>
+            <a routerLink="/orders" class="help-link">Return &amp; Refund Policy</a>
+            <a routerLink="/profile" class="help-link">Contact Support</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !order" class="not-found">
+      <p style="font-size:48px">😕</p>
+      <h3>Order not found</h3>
+      <a routerLink="/orders" class="btn btn-primary" style="margin-top:16px">Back to Orders</a>
+    </div>
+
+  </div>
+</div>

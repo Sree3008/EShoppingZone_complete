@@ -1,0 +1,32 @@
+.page-wrapper { padding: 28px; background: #f4f5f7; min-height: 100vh; }
+.page-title { font-size: 22px; font-weight: 800; color: #1a1a2e; margin-bottom: 20px; }
+
+.success-banner { background: #dcfce7; color: #16a34a; padding: 10px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
+.error-banner   { background: #fee2e2; color: #dc2626; padding: 10px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; }
+
+.card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 20px; }
+.table-card { padding: 0; overflow: hidden; }
+
+.filter-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.filter-row label { font-size: 13px; font-weight: 600; color: #374151; }
+.filter-row select { padding: 7px 12px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 13px; }
+
+.loading-state { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 0; color: #6b7280; }
+.spinner { width: 32px; height: 32px; border: 3px solid #e5e7eb; border-top-color: #6c2bd9; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: #f9fafb; padding: 10px 14px; font-size: 12px; font-weight: 700; color: #6b7280; text-align: left; }
+td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; font-size: 13.5px; color: #111827; }
+tr:hover td { background: #fafafa; }
+.empty-row { text-align: center; color: #9ca3af; padding: 40px; }
+
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 50px; font-size: 11px; font-weight: 700; }
+.badge-active   { background: #dcfce7; color: #16a34a; }
+.badge-blocked  { background: #fee2e2; color: #dc2626; }
+.badge-default  { background: #f3f4f6; color: #6b7280; }
+
+.btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+.btn-approve { background: #dcfce7; color: #16a34a; }
+.btn-reject  { background: #fee2e2; color: #dc2626; }
+.btn-update  { background: #f3f4f6; color: #374151; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }

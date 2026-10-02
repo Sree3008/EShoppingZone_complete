@@ -1,0 +1,123 @@
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ─── Sidebar ─────────────────────────────────────────── */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100vh;
+  background: #1a1a2e;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.logo-icon {
+  font-size: 22px;
+}
+
+.logo-text {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.logo-badge {
+  background: #6c2bd9;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 50px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ─── Nav ─────────────────────────────────────────────── */
+.sidebar-nav {
+  flex: 1;
+  padding: 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: 0;
+  transition: background 0.15s, color 0.15s;
+  margin: 0 8px;
+  border-radius: 8px;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+}
+
+.nav-link.active {
+  background: #6c2bd9;
+  color: #fff;
+}
+
+.nav-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+/* ─── Footer ──────────────────────────────────────────── */
+.sidebar-footer {
+  padding: 16px 8px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 20px;
+  background: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+  border: none;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.logout-btn:hover {
+  background: rgba(220, 38, 38, 0.3);
+  color: #fff;
+}
+
+/* ─── Main ────────────────────────────────────────────── */
+.main-content {
+  margin-left: 220px;
+  flex: 1;
+  min-height: 100vh;
+  background: #f4f5f7;
+}
